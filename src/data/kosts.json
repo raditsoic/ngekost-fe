@@ -1,0 +1,266 @@
+[
+  {
+    "id": 1,
+    "gender": "Putra",
+    "name": "Kost Melati Indah",
+    "price": "Rp1.300.000",
+    "period": "bulan",
+    "location": "Keputih, Surabaya",
+    "rating": "4.7",
+    "reviewCount": 21,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "Kursi", "Kipas Angin"],
+      "kamarMandi": ["K. Mandi Luar", "Kloset Jongkok", "Ember"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur", "Jemuran"]
+    },
+    "description": "Kost murah dan nyaman untuk mahasiswa, dekat dengan kampus dan tempat makan.",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "1.7km" }
+    ]
+  },
+  {
+    "id": 2,
+    "gender": "Putra",
+    "name": "Kost Hijau Ungu",
+    "price": "Rp2.500.000",
+    "period": "bulan",
+    "location": "Mulyorejo, Surabaya",
+    "rating": "4.9",
+    "reviewCount": 34,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "Kursi", "AC", "TV"],
+      "kamarMandi": ["K. Mandi Dalam", "Kloset Duduk", "Shower", "Water Heater"],
+      "umum": ["Wifi", "Parkir Motor", "Parkir Mobil", "Dapur", "Ruang Tamu", "CCTV"]
+    },
+    "description": "Kost eksklusif fasilitas lengkap, aman dan bersih.",
+    "images": [
+      "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=2065&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "2.1km" }
+    ]
+  },
+  {
+    "id": 3,
+    "gender": "Putri",
+    "name": "Kost Bunga Matahari",
+    "price": "Rp1.500.000",
+    "period": "bulan",
+    "location": "Keputih, Surabaya",
+    "rating": "4.5",
+    "reviewCount": 18,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "AC"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur"]
+    },
+    "description": "Kost khusus putri suasana nyaman dan aman.",
+    "images": [
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=2074&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "1.2km" }
+    ]
+  },
+  {
+    "id": 4,
+    "gender": "Campur",
+    "name": "Kost Puncak Kertajaya",
+    "price": "Rp2.000.000",
+    "period": "bulan",
+    "location": "Kertajaya, Surabaya",
+    "rating": "4.6",
+    "reviewCount": 29,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "AC", "Meja"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur", "Mesin Cuci"]
+    },
+    "description": "Kost campur strategis dekat pusat kota dan kampus.",
+    "images": [
+      "https://images.unsplash.com/photo-1502672260266-1c1e524164ed?q=80&w=1974&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "3.0km" }
+    ]
+  },
+  {
+    "id": 5,
+    "gender": "Putra",
+    "name": "Kost Bahari Residence",
+    "price": "Rp1.800.000",
+    "period": "bulan",
+    "location": "Gebang Putih, Surabaya",
+    "rating": "4.4",
+    "reviewCount": 15,
+    "facilities": {
+      "kamar": ["Kasur", "Meja", "Kursi", "Kipas Angin"],
+      "kamarMandi": ["K. Mandi Luar"],
+      "umum": ["Wifi", "Parkir Motor", "Jemuran"]
+    },
+    "description": "Kost sederhana dengan lokasi strategis dan harga terjangkau.",
+    "images": [
+      "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "0.8km" }
+    ]
+  },
+  {
+    "id": 6,
+    "gender": "Putri",
+    "name": "Kost Anggrek Putri",
+    "price": "Rp1.700.000",
+    "period": "bulan",
+    "location": "Mulyosari, Surabaya",
+    "rating": "4.8",
+    "reviewCount": 42,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "AC", "Meja", "Kursi"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower", "Water Heater"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur", "Ruang Tamu"]
+    },
+    "description": "Kost putri nyaman dengan fasilitas lengkap dan keamanan 24 jam.",
+    "images": [
+      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "2.5km" }
+    ]
+  },
+  {
+    "id": 7,
+    "gender": "Putra",
+    "name": "Kost Graha Muda",
+    "price": "Rp1.200.000",
+    "period": "bulan",
+    "location": "Keputih, Surabaya",
+    "rating": "4.3",
+    "reviewCount": 11,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja"],
+      "kamarMandi": ["K. Mandi Luar"],
+      "umum": ["Parkir Motor", "Jemuran"]
+    },
+    "description": "Kost ekonomis untuk mahasiswa dengan anggaran terbatas.",
+    "images": [
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "1.5km" }
+    ]
+  },
+  {
+    "id": 8,
+    "gender": "Campur",
+    "name": "Kost Educity Residence",
+    "price": "Rp3.000.000",
+    "period": "bulan",
+    "location": "Pakuwon, Surabaya",
+    "rating": "5.0",
+    "reviewCount": 60,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "AC", "TV", "Meja", "Kursi"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower", "Water Heater", "Bathtub"],
+      "umum": ["Wifi", "Parkir Motor", "Parkir Mobil", "Gym", "Kolam Renang", "CCTV", "Security 24 Jam"]
+    },
+    "description": "Kost premium dengan fasilitas resort, cocok untuk yang menginginkan kenyamanan maksimal.",
+    "images": [
+      "https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=2080&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "4.2km" }
+    ]
+  },
+  {
+    "id": 9,
+    "gender": "Putri",
+    "name": "Kost Lavender House",
+    "price": "Rp1.600.000",
+    "period": "bulan",
+    "location": "Keputih, Surabaya",
+    "rating": "4.6",
+    "reviewCount": 23,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "Kipas Angin"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower"],
+      "umum": ["Wifi", "Dapur", "Mesin Cuci"]
+    },
+    "description": "Kost putri dengan nuansa homey dan lingkungan yang tenang.",
+    "images": [
+      "https://images.unsplash.com/photo-1501127122-f385ca6ddd9d?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "1.1km" }
+    ]
+  },
+  {
+    "id": 10,
+    "gender": "Putra",
+    "name": "Kost Bintang Timur",
+    "price": "Rp1.400.000",
+    "period": "bulan",
+    "location": "Gebang Putih, Surabaya",
+    "rating": "4.5",
+    "reviewCount": 19,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "AC"],
+      "kamarMandi": ["K. Mandi Luar"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur"]
+    },
+    "description": "Kost dengan akses mudah ke kampus ITS dan fasilitas cukup lengkap.",
+    "images": [
+      "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "0.6km" }
+    ]
+  },
+  {
+    "id": 11,
+    "gender": "Campur",
+    "name": "Kost Dian Regency",
+    "price": "Rp2.200.000",
+    "period": "bulan",
+    "location": "Mulyorejo, Surabaya",
+    "rating": "4.7",
+    "reviewCount": 38,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "AC", "Meja", "TV"],
+      "kamarMandi": ["K. Mandi Dalam", "Shower", "Water Heater"],
+      "umum": ["Wifi", "Parkir Motor", "Dapur", "CCTV", "Security"]
+    },
+    "description": "Kost modern dengan keamanan terjamin dan fasilitas memadai.",
+    "images": [
+      "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "2.8km" }
+    ]
+  },
+  {
+    "id": 12,
+    "gender": "Putri",
+    "name": "Kost Mawar Indah",
+    "price": "Rp1.350.000",
+    "period": "bulan",
+    "location": "Keputih, Surabaya",
+    "rating": "4.4",
+    "reviewCount": 14,
+    "facilities": {
+      "kamar": ["Kasur", "Lemari", "Meja", "Kipas Angin"],
+      "kamarMandi": ["K. Mandi Luar"],
+      "umum": ["Wifi", "Dapur", "Jemuran"]
+    },
+    "description": "Kost putri sederhana dengan harga ramah di kantong.",
+    "images": [
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=2070&auto=format&fit=crop"
+    ],
+    "poi": [
+      { "name": "Institut Teknologi Sepuluh Nopember", "distance": "1.3km" }
+    ]
+  }
+]

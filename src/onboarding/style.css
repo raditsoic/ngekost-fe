@@ -1,0 +1,278 @@
+.onboarding-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fcfcfc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.onboarding-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 20px;
+  background-color: #f8fafc;
+}
+
+.onboarding-card {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px;
+  padding: 40px 36px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 40px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-step span {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.progress-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  border: 2px solid #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.progress-line {
+  width: 80px;
+  height: 2px;
+  background-color: #e2e8f0;
+  margin: 0 8px;
+  margin-bottom: 18px;
+  transition: background-color 0.3s ease;
+}
+
+.progress-line.active {
+  background-color: #4f46e5;
+}
+
+/* Step Content */
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.onboarding-step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background-color: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.onboarding-step h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.onboarding-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+/* Budget Input */
+.input-currency-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.currency-prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.input-currency-wrapper input {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+  transition: border-color 0.2s;
+}
+
+.input-currency-wrapper input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  background-color: white;
+}
+
+/* Suggestion Chips */
+.budget-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.suggestion-chip {
+  padding: 8px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 40px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.suggestion-chip:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+.suggestion-chip.selected {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+  color: white;
+}
+
+/* Vehicle Grid */
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.vehicle-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 60px;
+}
+
+.vehicle-card:hover {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.vehicle-card.selected {
+  border-color: #4f46e5;
+  background-color: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.vehicle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.vehicle-card.selected .vehicle-label {
+  color: #4f46e5;
+}
+
+/* Navigation Buttons */
+.onboarding-next-btn {
+  width: 100%;
+  padding: 16px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-next-btn:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.onboarding-next-btn:disabled {
+  background-color: #c7d2fe;
+  cursor: not-allowed;
+}
+
+.onboarding-nav {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.onboarding-back-btn {
+  flex: 1;
+  padding: 16px;
+  background-color: transparent;
+  color: #475569;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-back-btn:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.onboarding-nav .onboarding-next-btn {
+  flex: 2;
+  width: auto;
+}
