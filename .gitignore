@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build info
+*.tsbuildinfo
+
+# Lock files
+bun.lock
+package-lock.json
+
+# Claude Code
+.claude/
+
+# Docs
+docs/
+
+# Environment
+.env
+.env.*

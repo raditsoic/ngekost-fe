@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import kostsData from '../data/kosts.json';
 import { TopBar } from '../browsemore';
+import { Button } from '@/components/ui/button';
 import './style.css';
 
 // Helper function to find intersection and differences
@@ -74,16 +76,14 @@ export const CompareKost = () => {
           <TopBar />
 
           <div className="compare-wrapper-inner">
-            <button 
+            <Button
+              variant="ghost"
               onClick={() => navigate(-1)}
-              style={{
-                background: 'transparent', border: 'none', cursor: 'pointer', 
-                fontSize: '18px', fontWeight: 'bold', marginBottom: '20px',
-                fontFamily: '"Plus Jakarta Sans", sans-serif'
-              }}
+              className="mb-5 text-lg font-bold"
             >
-              &larr; Back
-            </button>
+              <ArrowLeft className="size-4" />
+              Back
+            </Button>
 
             {/* Images Header */}
             <div className="compare-images-wrapper">
@@ -153,20 +153,20 @@ export const CompareKost = () => {
 
             <hr className="divider" />
 
-            {renderFacilitySection("Fasilitas kamar", kamarCompare)}
-            {renderFacilitySection("Fasilitas kamar mandi", kamarMandiCompare)}
-            {renderFacilitySection("Fasilitas umum", umumCompare)}
-            {renderFacilitySection("Peraturan kos", { shared: ["Jam malam 22:00"], only1: ["Akses 24 Jam"], only2: ["Tamu menginap bayar"] })}
+            {renderFacilitySection("Room Facilities", kamarCompare)}
+            {renderFacilitySection("Room Facilities mandi", kamarMandiCompare)}
+            {renderFacilitySection("Shared Facilities", umumCompare)}
+            {renderFacilitySection("House Rules", { shared: ["10 PM Curfew"], only1: ["24-Hour Access"], only2: ["Paid overnight guests"] })}
 
             {/* Location Section */}
             <div className="location-section">
-              <h2 className="compare-facility-title">Lokasi</h2>
+              <h2 className="compare-facility-title">Location</h2>
               <div className="map-container">
                  <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2074&auto=format&fit=crop" alt="Map Placeholder" className="map-image" />
               </div>
               <div className="poi-buttons">
-                <button className="poi-btn active">Kampus terdekat</button>
-                <button className="poi-btn">Point of Interest</button>
+                <Button variant="outline" size="xs" className="poi-btn active">Nearest Campus</Button>
+                <Button variant="outline" size="xs" className="poi-btn">Point of Interest</Button>
               </div>
 
               <div className="compare-poi-list">

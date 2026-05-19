@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ngekost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a16;
+    --ink-60: #6b6b60;
+    --ink-30: #c5c5b8;
+    --ink-10: #f0efe8;
+    --moss: #3d5a40;
+    --moss-light: #6a9671;
+    --moss-dim: #e8eee8;
+    --paper: #f7f6f0;
+    --white: #ffffff;
+    --accent: #c8401a;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --rule: 1px solid var(--ink);
+    --rule-light: 1px solid var(--ink-30);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    border-bottom: var(--rule);
+    padding: 0 40px;
+    display: flex;
+    align-items: stretch;
+    height: 52px;
+    background: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--ink);
+    text-decoration: none;
+    border-right: var(--rule);
+    padding-right: 24px;
+    margin-right: 24px;
+  }
+  .nav-logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--ink);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper);
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+    flex-shrink: 0;
+  }
+  .nav-issue {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--ink-60);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    gap: 16px;
+    flex: 1;
+  }
+  .nav-issue span { color: var(--ink-30); }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-left: var(--rule);
+    margin-left: auto;
+  }
+  .btn-ghost {
+    height: 100%;
+    padding: 0 20px;
+    background: none;
+    border: none;
+    border-right: var(--rule);
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink-60);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+  .btn-ghost:hover { color: var(--ink); background: var(--ink-10); }
+  .btn-primary {
+    height: 100%;
+    padding: 0 24px;
+    background: var(--ink);
+    border: none;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--paper);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--moss); }
+
+  /* ── HERO ── */
+  .hero {
+    border-bottom: var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 52px);
+  }
+  .hero-left {
+    border-right: var(--rule);
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .hero-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    margin-bottom: 32px;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .hero-h1 {
+    font-family: var(--serif);
+    font-size: clamp(52px, 5.5vw, 80px);
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px 0;
+  }
+  .hero-h1 em {
+    font-style: italic;
+    color: var(--moss);
+  }
+  .hero-sub {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-60);
+    max-width: 360px;
+    margin-bottom: 32px;
+  }
+  .hero-cta-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .cta-main {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border: var(--rule);
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cta-main:hover { background: var(--moss); border-color: var(--moss); }
+  .cta-ghost {
+    background: none;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 12px 24px;
+    border: var(--rule);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cta-ghost:hover { background: var(--ink-10); }
+
+  /* ── HERO RIGHT ── */
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-stats-bar {
+    border-bottom: var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .stat-cell {
+    padding: 20px 24px;
+    border-right: var(--rule);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-60);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .hero-card-area {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: var(--white);
+  }
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-label .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  .property-list { display: flex; flex-direction: column; gap: 0; }
+  .property-row {
+    border: var(--rule-light);
+    border-bottom: none;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--white);
+    transition: background 0.15s;
+    cursor: default;
+    position: relative;
+  }
+  .property-row:last-child { border-bottom: var(--rule-light); }
+  .property-row:hover { background: var(--moss-dim); }
+  .property-row.top { border-left: 3px solid var(--moss); }
+  .prop-rank {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink-30);
+    width: 24px;
+    flex-shrink: 0;
+    text-align: center;
+    font-style: italic;
+  }
+  .property-row.top .prop-rank { color: var(--moss); }
+  .prop-info { flex: 1; min-width: 0; }
+  .prop-name { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prop-meta { font-size: 11px; color: var(--ink-60); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prop-score {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--moss);
+    min-width: 36px;
+    text-align: right;
+  }
+  .prop-price {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    min-width: 52px;
+    text-align: right;
+    padding-left: 12px;
+    border-left: var(--rule-light);
+  }
+
+  .cost-breakdown {
+    margin-top: 20px;
+    border: var(--rule-light);
+    padding: 16px;
+    background: var(--ink-10);
+  }
+  .breakdown-title {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    margin-bottom: 12px;
+  }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-label { font-size: 11px; color: var(--ink-60); width: 60px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 3px; background: var(--ink-30); }
+  .bar-fill { height: 100%; background: var(--moss); transition: width 1.2s cubic-bezier(0.16,1,0.3,1); }
+  .bar-pct { font-size: 10px; color: var(--ink-60); width: 28px; text-align: right; flex-shrink: 0; }
+
+  /* ── SECTION DIVIDERS ── */
+  .section-header {
+    border-bottom: var(--rule);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .section-header-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(247,246,240,0.5);
+  }
+  .section-header-title {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border-bottom: var(--rule);
+  }
+  .how-cell {
+    border-right: var(--rule);
+    padding: 40px 32px;
+  }
+  .how-cell:last-child { border-right: none; }
+  .how-num {
+    font-family: var(--serif);
+    font-size: 48px;
+    line-height: 1;
+    color: var(--ink-30);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  .how-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .how-body {
+    font-size: 13px;
+    color: var(--ink-60);
+    line-height: 1.65;
+  }
+
+  /* ── FINANCIAL SECTION ── */
+  .fin-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: var(--rule);
+  }
+  .fin-left {
+    border-right: var(--rule);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+  }
+  .fin-right {
+    padding: 48px;
+  }
+  .section-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-eyebrow::before {
+    content: '';
+    width: 16px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .fin-h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 2.8vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .fin-h2 em { font-style: italic; color: var(--moss); }
+  .fin-body {
+    font-size: 14px;
+    color: var(--ink-60);
+    line-height: 1.75;
+    margin-bottom: 32px;
+    flex: 1;
+  }
+  .fin-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: var(--rule);
+  }
+  .fin-metric {
+    padding: 20px;
+    border-right: var(--rule);
+    border-bottom: var(--rule);
+  }
+  .fin-metric:nth-child(2) { border-right: none; }
+  .fin-metric:nth-child(3) { border-bottom: none; }
+  .fin-metric:nth-child(4) { border-right: none; border-bottom: none; }
+  .fin-metric-val {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .fin-metric-label {
+    font-size: 11px;
+    color: var(--ink-60);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* chart */
+  .chart-title {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-60);
+    margin-bottom: 20px;
+  }
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 160px;
+    margin-bottom: 12px;
+  }
+  .chart-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .chart-bar {
+    width: 100%;
+    background: var(--moss);
+    transition: height 1s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+  }
+  .chart-bar-col:hover .chart-bar { background: var(--ink); }
+  .chart-bar-label {
+    font-size: 10px;
+    color: var(--ink-60);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .chart-axis {
+    border-top: var(--rule-light);
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--ink-30);
+  }
+
+  .exp-breakdown {
+    margin-top: 32px;
+  }
+  .exp-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: var(--rule-light);
+    gap: 12px;
+  }
+  .exp-row:first-child { border-top: var(--rule-light); }
+  .exp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .exp-name { font-size: 13px; color: var(--ink); flex: 1; }
+  .exp-bar-wrap { width: 100px; height: 2px; background: var(--ink-30); }
+  .exp-bar { height: 100%; background: var(--moss); }
+  .exp-pct {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    min-width: 30px;
+    text-align: right;
+  }
+
+  /* ── FAQ ── */
+  .faq-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    border-bottom: var(--rule);
+  }
+  .faq-left {
+    border-right: var(--rule);
+    padding: 48px 40px;
+  }
+  .faq-left-h2 {
+    font-family: var(--serif);
+    font-size: 36px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .faq-left-h2 em { font-style: italic; display: block; color: var(--moss); }
+  .faq-left-body {
+    font-size: 13px;
+    color: var(--ink-60);
+    line-height: 1.7;
+    margin-top: 16px;
+  }
+  .faq-right { padding: 0; }
+  .faq-item {
+    border-bottom: var(--rule-light);
+  }
+  .faq-q {
+    padding: 22px 40px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    gap: 16px;
+  }
+  .faq-q:hover { background: var(--ink-10); }
+  .faq-toggle {
+    width: 20px;
+    height: 20px;
+    border: var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ink-60);
+    transition: transform 0.2s;
+  }
+  .faq-a {
+    padding: 0 40px;
+    font-size: 13px;
+    color: var(--ink-60);
+    line-height: 1.75;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1), padding 0.35s;
+  }
+  .faq-item.open .faq-a { max-height: 200px; padding: 0 40px 20px; }
+  .faq-item.open .faq-toggle { transform: rotate(45deg); }
+
+  /* ── CTA ── */
+  .cta-band {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: var(--rule);
+  }
+  .cta-band-left {
+    border-right: var(--rule);
+    padding: 64px 48px;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cta-band-h2 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 3vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .cta-band-h2 em { font-style: italic; color: rgba(247,246,240,0.45); }
+  .cta-band-sub {
+    font-size: 14px;
+    color: rgba(247,246,240,0.5);
+    line-height: 1.7;
+    max-width: 300px;
+    margin-top: 16px;
+  }
+  .cta-band-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 40px;
+  }
+  .cta-paper {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 13px 28px;
+    border: 1px solid var(--paper);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+  .cta-paper:hover { background: var(--moss-dim); border-color: var(--moss-dim); }
+  .cta-outline-light {
+    background: none;
+    color: rgba(247,246,240,0.7);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 13px 28px;
+    border: 1px solid rgba(247,246,240,0.25);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .cta-outline-light:hover { border-color: rgba(247,246,240,0.6); color: var(--paper); }
+  .cta-band-right {
+    padding: 64px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 28px;
+  }
+  .testimonial-block { border-left: 3px solid var(--moss); padding-left: 20px; }
+  .testimonial-text {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--ink);
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+  .testimonial-by {
+    font-size: 12px;
+    color: var(--ink-60);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .testimonial-by strong { color: var(--ink); font-weight: 500; }
+  .city-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .city-chip {
+    padding: 6px 14px;
+    border: var(--rule-light);
+    font-size: 12px;
+    color: var(--ink-60);
+    background: none;
+  }
+  .city-chip.active { border-color: var(--moss); color: var(--moss); background: var(--moss-dim); }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: var(--rule);
+  }
+  footer p { font-size: 12px; color: var(--ink-60); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 12px; color: var(--ink-60); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+
+  /* ── TICKER ── */
+  .ticker {
+    border-bottom: var(--rule);
+    overflow: hidden;
+    background: var(--moss);
+    padding: 8px 0;
+  }
+  .ticker-inner {
+    display: flex;
+    gap: 0;
+    animation: ticker 28s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-item {
+    padding: 0 28px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(247,246,240,0.8);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .ticker-sep { color: rgba(247,246,240,0.3); }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ─ ANIMATE IN ─ */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-mark">nk</div>
+    ngekost
+  </a>
+  <div class="nav-issue">
+    <span>Edisi Jakarta</span>
+    <span>·</span>
+    <span>2,400+ properti</span>
+    <span>·</span>
+    <span>Sudirman · Menteng · Setiabudi · Kuningan</span>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-ghost">Masuk</button>
+    <button class="btn-primary">Cari kost &nbsp;→</button>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">Kost Menteng Asri <span class="ticker-sep">—</span> Skor 91</span>
+    <span class="ticker-item">Kost Setiabudi View <span class="ticker-sep">—</span> Skor 84</span>
+    <span class="ticker-item">Harga rata-rata Sudirman <span class="ticker-sep">—</span> Rp 2.8jt/bln</span>
+    <span class="ticker-item">Kost Kuningan Residence <span class="ticker-sep">—</span> Skor 78</span>
+    <span class="ticker-item">98 properti baru minggu ini</span>
+    <span class="ticker-item">Penghematan rata-rata <span class="ticker-sep">—</span> Rp 420k/bln</span>
+    <span class="ticker-item">Kost Menteng Asri <span class="ticker-sep">—</span> Skor 91</span>
+    <span class="ticker-item">Kost Setiabudi View <span class="ticker-sep">—</span> Skor 84</span>
+    <span class="ticker-item">Harga rata-rata Sudirman <span class="ticker-sep">—</span> Rp 2.8jt/bln</span>
+    <span class="ticker-item">Kost Kuningan Residence <span class="ticker-sep">—</span> Skor 78</span>
+    <span class="ticker-item">98 properti baru minggu ini</span>
+    <span class="ticker-item">Penghematan rata-rata <span class="ticker-sep">—</span> Rp 420k/bln</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left fade-up">
+    <div>
+      <div class="hero-tag">Temukan kost yang tepat</div>
+      <h1 class="hero-h1">
+        Sewa<br>
+        lebih<br>
+        <em>cerdas.</em>
+      </h1>
+    </div>
+    <div>
+      <p class="hero-sub">
+        Kami skor setiap kost berdasarkan harga sewa, biaya hidup harian, dan fasilitas sekitar — bukan cuma foto dan nomor telepon.
+      </p>
+      <div class="hero-cta-row">
+        <button class="cta-main">Analisis properti &nbsp;→</button>
+        <button class="cta-ghost">Lihat contoh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-stats-bar">
+      <div class="stat-cell fade-up" style="transition-delay:100ms">
+        <div class="stat-num">2,400+</div>
+        <div class="stat-label">Properti dianalisis</div>
+      </div>
+      <div class="stat-cell fade-up" style="transition-delay:180ms">
+        <div class="stat-num">18</div>
+        <div class="stat-label">Titik data POI</div>
+      </div>
+      <div class="stat-cell fade-up" style="transition-delay:260ms">
+        <div class="stat-num">92%</div>
+        <div class="stat-label">Akurasi biaya</div>
+      </div>
+    </div>
+
+    <div class="hero-card-area fade-up" style="transition-delay:200ms">
+      <div class="card-label">
+        <span class="live-dot"></span>
+        Pilihan terbaik di Sudirman
+      </div>
+
+      <div class="property-list" id="prop-list">
+        <div class="property-row top">
+          <div class="prop-rank">1</div>
+          <div class="prop-info">
+            <div class="prop-name">Kost Menteng Asri</div>
+            <div class="prop-meta">Jl. Menteng Raya · 400m MRT · 3 warung</div>
+          </div>
+          <div class="prop-score">91</div>
+          <div class="prop-price">Rp 2.8jt</div>
+        </div>
+        <div class="property-row">
+          <div class="prop-rank">2</div>
+          <div class="prop-info">
+            <div class="prop-name">Kost Setiabudi View</div>
+            <div class="prop-meta">Jl. Setiabudi Tengah · 600m bus · minimarket</div>
+          </div>
+          <div class="prop-score">84</div>
+          <div class="prop-price">Rp 2.2jt</div>
+        </div>
+        <div class="property-row">
+          <div class="prop-rank">3</div>
+          <div class="prop-info">
+            <div class="prop-name">Kost Kuningan Residence</div>
+            <div class="prop-meta">Jl. HR Rasuna Said · 200m bus · 5 warung</div>
+          </div>
+          <div class="prop-score">78</div>
+          <div class="prop-price">Rp 1.9jt</div>
+        </div>
+      </div>
+
+      <div class="cost-breakdown">
+        <div class="breakdown-title">Perkiraan pengeluaran bulanan</div>
+        <div class="bar-row">
+          <div class="bar-label">Sewa</div>
+          <div class="bar-track"><div class="bar-fill" id="b1" style="width:0%"></div></div>
+          <div class="bar-pct">65%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Makan</div>
+          <div class="bar-track"><div class="bar-fill" id="b2" style="width:0%"></div></div>
+          <div class="bar-pct">42%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Transport</div>
+          <div class="bar-track"><div class="bar-fill" id="b3" style="width:0%"></div></div>
+          <div class="bar-pct">28%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS HEADER -->
+<div class="section-header">
+  <span class="section-header-label">Cara kerja</span>
+  <span class="section-header-title">Empat langkah, satu keputusan tepat</span>
+</div>
+
+<!-- HOW IT WORKS GRID -->
+<div class="how-grid">
+  <div class="how-cell fade-up">
+    <div class="how-num">01</div>
+    <div class="how-title">Masukkan lokasi kerja atau kampus</div>
+    <div class="how-body">Kami peta jarak ke MRT, busway, dan titik penting lain dari setiap properti di radius itu.</div>
+  </div>
+  <div class="how-cell fade-up" style="transition-delay:80ms">
+    <div class="how-num">02</div>
+    <div class="how-title">Kami hitung biaya hidup nyata</div>
+    <div class="how-body">18+ titik data per properti: warung, minimarket, laundry, dan lebih banyak lagi — bukan sekadar harga sewa.</div>
+  </div>
+  <div class="how-cell fade-up" style="transition-delay:160ms">
+    <div class="how-num">03</div>
+    <div class="how-title">Bandingkan skor komposit</div>
+    <div class="how-body">Setiap kost dapat skor 0–100. Bandingkan apel dengan apel, bukan foto dengan foto.</div>
+  </div>
+  <div class="how-cell fade-up" style="transition-delay:240ms">
+    <div class="how-num">04</div>
+    <div class="how-title">Pindah dengan percaya diri</div>
+    <div class="how-body">Proyeksi pengeluaran bulanan, bukan perkiraan. Kamu tahu angkanya sebelum tanda tangan kontrak.</div>
+  </div>
+</div>
+
+<!-- FINANCIAL SECTION HEADER -->
+<div class="section-header">
+  <span class="section-header-label">Wawasan Keuangan</span>
+  <span class="section-header-title">Kenali angkanya sebelum pindah</span>
+</div>
+
+<!-- FINANCIAL -->
+<div class="fin-wrapper">
+  <div class="fin-left fade-up">
+    <div>
+      <div class="section-eyebrow">Proyeksi biaya</div>
+      <h2 class="fin-h2">Jangan kaget<br>di akhir bulan.</h2>
+      <p class="fin-body">
+        Sewa kost bukan satu-satunya pengeluaran. Kami proyeksi total biaya bulanan — sewa, makan, transport, utilitas — supaya tidak ada kejutan.
+      </p>
+    </div>
+    <div class="fin-metrics">
+      <div class="fin-metric">
+        <div class="fin-metric-val">Rp 3.0jt</div>
+        <div class="fin-metric-label">Rata-rata/bln</div>
+      </div>
+      <div class="fin-metric">
+        <div class="fin-metric-val">40%</div>
+        <div class="fin-metric-label">Porsi sewa</div>
+      </div>
+      <div class="fin-metric">
+        <div class="fin-metric-val">Rp 420k</div>
+        <div class="fin-metric-label">Potensi hemat</div>
+      </div>
+      <div class="fin-metric">
+        <div class="fin-metric-val">92%</div>
+        <div class="fin-metric-label">Akurasi data</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fin-right fade-up" style="transition-delay:120ms">
+    <div class="chart-title">Tren pengeluaran bulanan (Rp ribu)</div>
+    <div class="bar-chart" id="bar-chart">
+      <!-- JS rendered -->
+    </div>
+    <div class="chart-axis">
+      <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>Mei</span><span>Jun</span>
+    </div>
+
+    <div class="exp-breakdown">
+      <div class="exp-row">
+        <div class="exp-dot" style="background:#3d5a40"></div>
+        <div class="exp-name">Sewa</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="eb0" style="width:0%"></div></div>
+        <div class="exp-pct">40%</div>
+      </div>
+      <div class="exp-row">
+        <div class="exp-dot" style="background:#6a9671"></div>
+        <div class="exp-name">Makan</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="eb1" style="width:0%;background:#6a9671"></div></div>
+        <div class="exp-pct">25%</div>
+      </div>
+      <div class="exp-row">
+        <div class="exp-dot" style="background:#93b599"></div>
+        <div class="exp-name">Transport</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="eb2" style="width:0%;background:#93b599"></div></div>
+        <div class="exp-pct">15%</div>
+      </div>
+      <div class="exp-row">
+        <div class="exp-dot" style="background:#c5c5b8"></div>
+        <div class="exp-name">Utilitas</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="eb3" style="width:0%;background:#c5c5b8"></div></div>
+        <div class="exp-pct">12%</div>
+      </div>
+      <div class="exp-row">
+        <div class="exp-dot" style="background:#e8eee8"></div>
+        <div class="exp-name">Lain-lain</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" id="eb4" style="width:0%;background:#e8eee8;border:1px solid #c5c5b8"></div></div>
+        <div class="exp-pct">8%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ HEADER -->
+<div class="section-header">
+  <span class="section-header-label">Pertanyaan umum</span>
+  <span class="section-header-title">Hal-hal yang sering ditanyakan</span>
+</div>
+
+<!-- FAQ -->
+<div class="faq-wrapper">
+  <div class="faq-left fade-up">
+    <h2 class="faq-left-h2">Ada<br>pertanyaan?<em>Wajar.</em></h2>
+    <p class="faq-left-body">Ngekost untuk siapa saja yang lelah nebak-nebak biaya hidup sebelum pindah kost.</p>
+  </div>
+  <div class="faq-right" id="faq-container"></div>
+</div>
+
+<!-- CTA -->
+<div class="cta-band">
+  <div class="cta-band-left">
+    <div>
+      <h2 class="cta-band-h2">Siap cari<br>kost <em>berikutnya?</em></h2>
+      <p class="cta-band-sub">Bergabung dengan ribuan penyewa yang membuat keputusan lebih cerdas setiap hari.</p>
+    </div>
+    <div class="cta-band-btns">
+      <button class="cta-paper">Mulai gratis &nbsp;→</button>
+      <button class="cta-outline-light">Masuk</button>
+    </div>
+  </div>
+  <div class="cta-band-right fade-up">
+    <div class="testimonial-block">
+      <p class="testimonial-text">"Saya hemat Rp 400k per bulan setelah pindah ke kost yang direkomendasikan ngekost."</p>
+      <p class="testimonial-by"><strong>Rizky A.</strong> — Karyawan swasta, Sudirman</p>
+    </div>
+    <div>
+      <div class="card-label" style="margin-bottom:12px">Kota yang tersedia</div>
+      <div class="city-chips">
+        <span class="city-chip active">Jakarta</span>
+        <span class="city-chip">Bandung</span>
+        <span class="city-chip">Surabaya</span>
+        <span class="city-chip">Yogyakarta</span>
+        <span class="city-chip">+ segera hadir</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 ngekost. Seluruh hak cipta dilindungi.</p>
+  <div class="footer-links">
+    <a href="#">Privasi</a>
+    <a href="#">Syarat</a>
+    <a href="#">Kontak</a>
+  </div>
+</footer>
+
+<script>
+const faqs = [
+  { q: 'Apa itu ngekost?', a: 'ngekost adalah platform analisis kost yang membantu kamu menemukan kos-kosan terbaik dengan menilai properti berdasarkan harga sewa, biaya hidup sekitar, dan fasilitas penting — semua dalam satu tempat.' },
+  { q: 'Bagaimana cara penilaian skor?', a: 'Kami menganalisis 18+ titik data per properti termasuk harga sewa, jarak ke transportasi umum, warung makan terdekat, minimarket, dan proyeksi pengeluaran bulanan. Setiap properti mendapat skor komposit 0–100.' },
+  { q: 'Apakah ngekost gratis?', a: 'Ya, ngekost saat ini gratis selama periode beta. Kamu bisa mencari, membandingkan properti, dan menggunakan alat proyeksi keuangan tanpa biaya.' },
+  { q: 'Kota apa saja yang tersedia?', a: 'Kami mulai dari Jakarta (Sudirman, Menteng, Setiabudi, Kuningan) dan berkembang ke kota besar Indonesia lainnya. Area baru ditambahkan setiap bulan.' },
+  { q: 'Seberapa akurat data biayanya?', a: 'Data kami berasal dari listing terverifikasi, survei lapangan, dan laporan pengeluaran nyata dari penghuni. Kami mencapai akurasi 92% pada proyeksi biaya bulanan.' },
+];
+
+const faqContainer = document.getElementById('faq-container');
+faqs.forEach((f, i) => {
+  const item = document.createElement('div');
+  item.className = 'faq-item';
+  item.innerHTML = `<div class="faq-q">${f.q}<div class="faq-toggle">+</div></div><div class="faq-a">${f.a}</div>`;
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+  faqContainer.appendChild(item);
+});
+
+const spending = [3200, 2800, 3500, 2900, 3100, 2500];
+const maxS = Math.max(...spending);
+const chart = document.getElementById('bar-chart');
+spending.forEach((v, i) => {
+  const col = document.createElement('div');
+  col.className = 'chart-bar-col';
+  const heightPct = (v / maxS) * 100;
+  col.innerHTML = `<div class="chart-bar" data-h="${heightPct}" style="height:0px; width:100%;"></div>`;
+  chart.appendChild(col);
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    document.getElementById('b1').style.width = '65%';
+    document.getElementById('b2').style.width = '42%';
+    document.getElementById('b3').style.width = '28%';
+    [40, 25, 15, 12, 8].forEach((pct, i) => {
+      const el = document.getElementById(`eb${i}`);
+      if (el) el.style.width = pct + '%';
+    });
+    document.querySelectorAll('.chart-bar').forEach((bar, i) => {
+      const h = parseFloat(bar.dataset.h);
+      setTimeout(() => { bar.style.height = h + '%'; bar.style.transition = `height 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms`; }, 80);
+    });
+    barObserver.disconnect();
+  });
+}, { threshold: 0.2 });
+
+barObserver.observe(document.querySelector('.hero-card-area'));
+</script>
+</body>
+</html>

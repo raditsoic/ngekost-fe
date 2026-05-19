@@ -1,26 +1,71 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { BrowseMore } from './browsemore';
 import { Chat } from './chat';
 import { KostDetail } from './kostdetail';
 import { CompareKost } from './compare';
-import { Sidebar } from './sidebar';
+import { AppSidebar } from './sidebar';
 import { Home } from './home';
+import { Hero } from './hero';
+import { NotFound } from './not-found';
 import { Financial } from './financial';
 import { Onboarding } from './onboarding';
+import { AuthProvider, useAuth } from './auth/context';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { TooltipProvider } from '@/components/ui/tooltip';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <div className="flex h-svh items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AppLayout() {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const sidebarPaths = ['/properties', '/services', '/chat', '/financial', '/property', '/compare'];
+  const showSidebar = sidebarPaths.some((p) => location.pathname.startsWith(p)) && !isLoading && !!user;
+
+  return (
+    <SidebarProvider>
+      {showSidebar && <AppSidebar />}
+      <SidebarInset>
+        <Routes>
+          <Route path="/" element={<Hero />} />
+          <Route path="/auth/login" element={<Home />} />
+          <Route path="/auth/register" element={<Home />} />
+          <Route path="/properties" element={<ProtectedRoute><BrowseMore /></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><BrowseMore /></ProtectedRoute>} />
+          <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+          <Route path="/chat/new" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+          <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+          <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route path="/property/:id" element={<ProtectedRoute><KostDetail /></ProtectedRoute>} />
+          <Route path="/compare/:id1/:id2" element={<ProtectedRoute><CompareKost /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Sidebar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/catalogue" element={<BrowseMore />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/financial" element={<Financial />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/kost/:id" element={<KostDetail />} />
-        <Route path="/compare/:id1/:id2" element={<CompareKost />} />
-      </Routes>
+      <AuthProvider>
+        <TooltipProvider>
+          <AppLayout />
+        </TooltipProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
