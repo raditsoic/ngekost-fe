@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   MapPin,
@@ -18,43 +18,54 @@ import {
   X,
   ImageIcon,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Separator } from '@/components/ui/separator';
 import { MOCK_DATA, type KostProperty } from '../browsemore';
 
 function formatPrice(priceIdr: number | null, priceDisplay: string | null) {
   if (priceDisplay) return priceDisplay;
   if (priceIdr) return 'Rp' + priceIdr.toLocaleString('id-ID');
-  return 'Price not available';
+  return 'Price N/A';
 }
 
 function GenderBadge({ gender }: { gender: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    putra: { label: 'Male', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-    putri: { label: 'Female', className: 'bg-pink-50 text-pink-700 border-pink-200' },
-    campur: { label: 'Mixed', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  const config: Record<string, { label: string }> = {
+    putra: { label: 'Putra' },
+    putri: { label: 'Putri' },
+    campur: { label: 'Campur' },
   };
   const c = config[gender] || config.campur;
   return (
-    <Badge variant="outline" className={`text-xs px-2 py-0.5 h-6 font-medium border ${c.className}`}>
+    <span className="inline-block text-[10px] tracking-[0.08em] uppercase px-1.5 py-0.5 border border-[var(--chart-3)] font-medium">
       {c.label}
-    </Badge>
+    </span>
   );
 }
 
 function SpecChip({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | boolean }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-[#cbd5e1]/60 bg-white px-3 py-2">
-      <Icon className="size-4 text-[#344e41]" />
+    <div className="flex items-center gap-2.5 border border-border px-3 py-2.5">
+      <Icon className="size-4 text-foreground" />
       <div className="flex flex-col">
-        <span className="text-[10px] text-[#94a3b8] leading-none">{label}</span>
-        <span className="text-xs font-medium text-[#151515] leading-tight mt-0.5">
-          {typeof value === 'boolean' ? (value ? <Check className="size-3.5 text-[#344e41]" /> : <X className="size-3.5 text-[#94a3b8]" />) : value}
+        <span className="text-[9px] tracking-[0.08em] uppercase text-muted-foreground leading-none">{label}</span>
+        <span className="text-xs font-medium text-foreground leading-tight mt-0.5">
+          {typeof value === 'boolean' ? (value ? <Check className="size-3.5 text-primary" /> : <X className="size-3.5 text-muted-foreground" />) : value}
         </span>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ label, subtitle }: { label: string; subtitle?: string }) {
+  return (
+    <div className="border-[var(--chart-3)] border">
+      <div className="bg-[var(--chart-3)] text-[var(--background)] px-4 py-2 flex items-baseline justify-between">
+        <span className="text-[10px] tracking-[0.12em] uppercase font-sans font-medium">
+          {label}
+        </span>
+        {subtitle && (
+          <span className="text-[10px] font-serif italic opacity-70">{subtitle}</span>
+        )}
       </div>
     </div>
   );
@@ -63,6 +74,8 @@ function SpecChip({ icon: Icon, label, value }: { icon: React.ElementType; label
 export const KostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnPage = (location.state as { page?: number } | null)?.page;
 
   const kost = useMemo<KostProperty | undefined>(() => {
     if (!id) return MOCK_DATA[0];
@@ -74,9 +87,14 @@ export const KostDetail = () => {
     return (
       <div className="flex h-svh items-center justify-center">
         <div className="text-center">
-          <Building2 className="mx-auto size-8 text-[#cbd5e1] mb-3" />
-          <p className="text-sm text-[#94a3b8]">Property not found.</p>
-          <Button variant="outline" size="sm" onClick={() => navigate('/properties')} className="mt-3 text-xs">
+          <Building2 className="mx-auto size-8 text-muted-foreground mb-3" />
+          <p className="text-sm text-muted-foreground">Property not found.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/properties')}
+            className="mt-3 text-xs rounded-none border-[var(--chart-3)]"
+          >
             Back to Properties
           </Button>
         </div>
@@ -98,39 +116,40 @@ export const KostDetail = () => {
   );
 
   return (
-    <div className="relative z-10 flex h-svh flex-col bg-[#f5f5f5]">
+    <div className="relative z-10 flex h-svh flex-col bg-background">
       <ScrollArea className="flex-1">
-        <div className="mx-auto max-w-[720px] px-4 py-5 md:px-6">
+        <div className="mx-auto max-w-[860px] px-4 py-5 md:px-8 md:py-6">
 
           {/* Back */}
-          <Button variant="ghost" size="xs" onClick={() => navigate(-1)} className="mb-4 text-[#94a3b8] hover:text-[#344e41]">
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => navigate('/properties', { state: { page: returnPage } })}
+            className="mb-4 text-muted-foreground hover:text-foreground rounded-none"
+          >
             <ArrowLeft className="size-3.5" />
-            Back
+            <span className="text-[10px] tracking-[0.08em] uppercase">Back</span>
           </Button>
 
-          {/* Image Gallery */}
-          <div className="mb-5 flex gap-2 overflow-hidden rounded-xl">
-            {/* Main image */}
-            <div className="relative flex-[2] bg-[#e4e5f1]">
-              <AspectRatio ratio={4 / 3}>
-                {mainImage ? (
-                  <img src={mainImage} alt={kost.title} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <ImageIcon className="size-10 text-[#cbd5e1]" />
-                  </div>
-                )}
-              </AspectRatio>
+          {/* Image Gallery — Editorial grid, no rounded corners */}
+          <div className="mb-6 flex gap-px overflow-hidden border border-[var(--chart-3)]">
+            <div className="relative flex-[2] bg-muted">
+              {mainImage ? (
+                <img src={mainImage} alt={kost.title} className="h-full w-full object-cover aspect-[4/3]" />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center">
+                  <ImageIcon className="size-10 text-muted-foreground/40" />
+                </div>
+              )}
             </div>
-            {/* Side images */}
             {imageUrls.length > 1 && (
-              <div className="hidden flex-1 flex-col gap-2 sm:flex">
+              <div className="hidden flex-1 flex-col gap-px sm:flex">
                 {imageUrls.slice(1, 3).map((src, i) => (
-                  <div key={i} className="relative flex-1 bg-[#e4e5f1] rounded-lg overflow-hidden">
+                  <div key={i} className="relative flex-1 overflow-hidden bg-muted">
                     <img src={src} alt={`${kost.title} ${i + 2}`} className="h-full w-full object-cover" />
                     {i === 1 && imageUrls.length > 3 && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                        <span className="text-lg font-bold text-white">+{imageUrls.length - 3}</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-[var(--chart-3)]/60">
+                        <span className="text-lg font-serif font-bold text-background">+{imageUrls.length - 3}</span>
                       </div>
                     )}
                   </div>
@@ -139,60 +158,64 @@ export const KostDetail = () => {
             )}
           </div>
 
-          {/* Title + Compare */}
-          <div className="flex items-start justify-between gap-3">
+          {/* Title + Compare — 2-column editorial split */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 mb-6 border-b border-[var(--chart-3)] pb-5">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-[#151515] leading-tight">{kost.title}</h1>
-              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#94a3b8]">
+              <h1 className="text-xl md:text-2xl font-serif italic text-foreground leading-tight">
+                {kost.title}
+              </h1>
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <MapPin className="size-3 shrink-0" />
                 <span className="truncate">{kost.formatted_address}</span>
               </div>
+
+              {/* Rating + Gender + Availability */}
+              <div className="mt-2.5 flex items-center gap-2.5">
+                {kost.rating != null && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
+                    <Star className="size-3.5 fill-[var(--chart-3)] text-[var(--chart-3)]" />
+                    <span className="font-serif italic">{kost.rating.toFixed(1)}</span>
+                  </span>
+                )}
+                {kost.rating != null && <span className="text-border">|</span>}
+                <GenderBadge gender={kost.gender_normalized} />
+                {kost.availability_count != null && (
+                  <>
+                    <span className="text-border">|</span>
+                    <span className="text-[10px] tracking-[0.06em] uppercase text-muted-foreground">
+                      {kost.availability_count} rooms
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={() => navigate(`/compare/${encodeURIComponent(kost.title)}/${encodeURIComponent(MOCK_DATA.find(k => k.title !== kost.title)?.title || kost.title)}`)}
-              className="shrink-0 gap-1 text-[10px]"
-            >
-              <CopyPlus className="size-3" />
-              Compare
-            </Button>
+
+            <div className="flex flex-col items-start md:items-end gap-2">
+              {/* Price */}
+              <div className="text-right">
+                <span className="text-2xl md:text-3xl font-serif font-medium text-[var(--chart-3)]">
+                  {formatPrice(kost.price_idr, kost.price_display)}
+                </span>
+                {kost.rent_type && (
+                  <span className="text-xs text-muted-foreground">/{kost.rent_type}</span>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={() => navigate(`/compare/${encodeURIComponent(kost.title)}/${encodeURIComponent(MOCK_DATA.find(k => k.title !== kost.title)?.title || kost.title)}`)}
+                className="gap-1 text-[10px] tracking-[0.06em] uppercase rounded-none border-[var(--chart-3)]"
+              >
+                <CopyPlus className="size-3" />
+                Compare
+              </Button>
+            </div>
           </div>
 
-          {/* Rating + Gender */}
-          <div className="mt-2.5 flex items-center gap-2">
-            {kost.rating != null && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-[#151515]">
-                <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                {kost.rating.toFixed(1)}
-              </span>
-            )}
-            {kost.rating != null && <span className="text-[#cbd5e1]">·</span>}
-            <GenderBadge gender={kost.gender_normalized} />
-            {kost.availability_count != null && (
-              <>
-                <span className="text-[#cbd5e1]">·</span>
-                <span className="text-xs text-[#64748b]">{kost.availability_count} rooms available</span>
-              </>
-            )}
-          </div>
-
-          {/* Price */}
-          <div className="mt-3">
-            <span className="text-xl font-bold text-[#344e41]">
-              {formatPrice(kost.price_idr, kost.price_display)}
-            </span>
-            {kost.rent_type && (
-              <span className="text-sm text-[#94a3b8]">/{kost.rent_type}</span>
-            )}
-          </div>
-
-          <Separator className="my-5 bg-[#cbd5e1]/50" />
-
-          {/* Room Specs */}
-          <section>
-            <h2 className="text-sm font-semibold text-[#151515] mb-3">Room Specifications</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {/* Room Specifications */}
+          <div className="mb-6">
+            <SectionHeader label="Specifications" subtitle="Room details" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-px bg-border">
               {kost.room_size_m2 != null && <SpecChip icon={Ruler} label="Size" value={`${kost.room_size_m2} m²`} />}
               <SpecChip icon={Wind} label="AC" value={kost.has_ac} />
               <SpecChip icon={Wifi} label="WiFi" value={kost.has_wifi} />
@@ -201,20 +224,21 @@ export const KostDetail = () => {
               <SpecChip icon={Car} label="Parking" value={kost.has_parking} />
               <SpecChip icon={Zap} label="Electricity" value={kost.electricity_included ? 'Included' : 'Not included'} />
             </div>
-          </section>
-
-          <Separator className="my-5 bg-[#cbd5e1]/50" />
+          </div>
 
           {/* Facilities */}
-          <section>
-            <h2 className="text-sm font-semibold text-[#151515] mb-3">Facilities</h2>
+          <div className="mb-6">
+            <SectionHeader label="Facilities" subtitle="What's included" />
 
             {roomFacilities.length > 0 && (
-              <div className="mb-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8]">Room</span>
-                <div className="mt-1.5 flex flex-wrap gap-1">
+              <div className="border-b border-border">
+                <div className="px-4 py-2 bg-muted/30 flex items-baseline justify-between">
+                  <span className="text-[10px] tracking-[0.1em] uppercase text-muted-foreground font-medium">Room</span>
+                  <span className="text-[10px] text-muted-foreground">{roomFacilities.length} items</span>
+                </div>
+                <div className="flex flex-wrap gap-px p-3">
                   {roomFacilities.map((f) => (
-                    <span key={f} className="inline-flex items-center rounded-md bg-[#344e41]/5 px-2 py-1 text-[11px] text-[#344e41] font-medium">
+                    <span key={f} className="border border-border px-2 py-1 text-[11px] text-foreground font-medium">
                       {f}
                     </span>
                   ))}
@@ -223,11 +247,14 @@ export const KostDetail = () => {
             )}
 
             {bathroomFacilities.length > 0 && (
-              <div className="mb-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8]">Bathroom</span>
-                <div className="mt-1.5 flex flex-wrap gap-1">
+              <div className="border-b border-border">
+                <div className="px-4 py-2 bg-muted/30 flex items-baseline justify-between">
+                  <span className="text-[10px] tracking-[0.1em] uppercase text-muted-foreground font-medium">Bathroom</span>
+                  <span className="text-[10px] text-muted-foreground">{bathroomFacilities.length} items</span>
+                </div>
+                <div className="flex flex-wrap gap-px p-3">
                   {bathroomFacilities.map((f) => (
-                    <span key={f} className="inline-flex items-center rounded-md bg-[#344e41]/5 px-2 py-1 text-[11px] text-[#344e41] font-medium">
+                    <span key={f} className="border border-border px-2 py-1 text-[11px] text-foreground font-medium">
                       {f}
                     </span>
                   ))}
@@ -237,59 +264,60 @@ export const KostDetail = () => {
 
             {sharedFacilities.length > 0 && (
               <div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8]">Shared</span>
-                <div className="mt-1.5 flex flex-wrap gap-1">
+                <div className="px-4 py-2 bg-muted/30 flex items-baseline justify-between">
+                  <span className="text-[10px] tracking-[0.1em] uppercase text-muted-foreground font-medium">Shared</span>
+                  <span className="text-[10px] text-muted-foreground">{sharedFacilities.length} items</span>
+                </div>
+                <div className="flex flex-wrap gap-px p-3">
                   {sharedFacilities.map((f) => (
-                    <span key={f} className="inline-flex items-center rounded-md bg-[#344e41]/5 px-2 py-1 text-[11px] text-[#344e41] font-medium">
+                    <span key={f} className="border border-border px-2 py-1 text-[11px] text-foreground font-medium">
                       {f}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-          </section>
+          </div>
 
           {/* Rules */}
           {kost.rules.length > 0 && (
-            <>
-              <Separator className="my-5 bg-[#cbd5e1]/50" />
-              <section>
-                <h2 className="text-sm font-semibold text-[#151515] mb-3">Rules</h2>
-                <ul className="flex flex-col gap-1.5">
-                  {kost.rules.map((rule, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-[#64748b]">
-                      <ShieldCheck className="size-3.5 mt-0.5 shrink-0 text-[#94a3b8]" />
-                      {rule}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </>
+            <div className="mb-6">
+              <SectionHeader label="Rules" subtitle="House policy" />
+              <div className="divide-y divide-border">
+                {kost.rules.map((rule, i) => (
+                  <div key={i} className="flex items-start gap-3 px-4 py-2.5">
+                    <span className="font-serif italic text-[var(--chart-5)] text-sm leading-none mt-0.5 w-5 text-right">
+                      {i + 1}
+                    </span>
+                    <ShieldCheck className="size-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                    <span className="text-xs text-foreground">{rule}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          <Separator className="my-5 bg-[#cbd5e1]/50" />
-
           {/* Location */}
-          <section className="pb-8">
-            <h2 className="text-sm font-semibold text-[#151515] mb-3">Location</h2>
-            <Card className="overflow-hidden border border-[#cbd5e1]/50 shadow-none">
-              <AspectRatio ratio={16 / 7}>
-                <div className="flex h-full w-full items-center justify-center bg-[#e4e5f1]">
-                  {kost.location ? (
-                    <div className="text-center">
-                      <MapPin className="mx-auto size-5 text-[#94a3b8] mb-1" />
-                      <p className="text-[10px] text-[#94a3b8]">
-                        {kost.location.lat.toFixed(4)}, {kost.location.lon.toFixed(4)}
-                      </p>
-                    </div>
-                  ) : (
-                    <MapPin className="size-5 text-[#cbd5e1]" />
-                  )}
-                </div>
-              </AspectRatio>
-            </Card>
-            <p className="mt-2 text-xs text-[#64748b]">{kost.formatted_address}</p>
-          </section>
+          <div className="pb-8">
+            <SectionHeader label="Location" subtitle="Coordinates" />
+            <div className="border border-[var(--chart-3)]">
+              <div className="flex aspect-[16/7] items-center justify-center bg-muted">
+                {kost.location ? (
+                  <div className="text-center">
+                    <MapPin className="mx-auto size-5 text-muted-foreground mb-1" />
+                    <p className="text-xs font-serif text-muted-foreground">
+                      {kost.location.lat.toFixed(4)}, {kost.location.lon.toFixed(4)}
+                    </p>
+                  </div>
+                ) : (
+                  <MapPin className="size-5 text-muted-foreground/40" />
+                )}
+              </div>
+              <div className="px-4 py-2.5 border-t border-[var(--chart-3)]">
+                <p className="text-xs text-foreground">{kost.formatted_address}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </ScrollArea>
     </div>

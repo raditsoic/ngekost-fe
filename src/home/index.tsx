@@ -53,83 +53,119 @@ export const Home = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background font-sans">
-      {/* Left panel — atmospheric brand moment */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#344e41]">
-        {/* Gradient mesh */}
-        <div className="absolute inset-0">
-          <div className="absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full bg-[#588157]/30 blur-[120px]" />
-          <div className="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] rounded-full bg-[#a3b18a]/20 blur-[100px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] rounded-full bg-[#6a9671]/15 blur-[80px]" />
+    <div className="min-h-screen bg-background font-sans text-foreground">
+      {/* ─── Top bar ─── */}
+      <nav className="flex h-[52px] items-center border-b border-foreground bg-background px-6 md:px-10">
+        <a
+          href="/"
+          className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight text-foreground no-underline border-r border-foreground pr-5 mr-5"
+        >
+          <img src="/ngekost-logo.svg" alt="ngekost" className="size-7" />
+          ngekost
+        </a>
+        <div className="flex-1" />
+        <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+          <span className="hidden sm:inline">
+            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+          </span>
+          <Button
+            variant="ghost"
+            className="rounded-none text-[13px] text-muted-foreground hover:text-foreground px-3 h-8"
+            onClick={toggleMode}
+          >
+            {isLogin ? 'Create account' : 'Sign in'}
+          </Button>
         </div>
+      </nav>
 
-        {/* Subtle grain overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <div className="flex items-center gap-2 text-white/90 text-[15px] font-semibold tracking-tight">
-            <img src="/ngekost-logo.svg" alt="ngekost" className="size-7 brightness-0 invert" />
-            ngekost
+      {/* ─── Main grid ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 min-h-[calc(100vh-52px)]">
+        {/* Left — editorial brand panel */}
+        <div className="hidden md:flex flex-col justify-between relative overflow-hidden bg-[#1a2e1f] text-white border-r border-foreground p-10 md:p-12">
+          {/* Gradient mesh */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full bg-[#344e41]/40 blur-[120px]" />
+            <div className="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] rounded-full bg-[#588157]/20 blur-[100px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] rounded-full bg-[#6a9671]/10 blur-[80px]" />
           </div>
 
-          <div className="flex flex-col gap-6 max-w-sm">
-            <h2 className="text-[clamp(28px,3.5vw,40px)] font-bold leading-[1.1] tracking-tight text-white/95">
-              Rent smarter.
-              <br />
-              Know the{' '}
-              <span className="text-[#a3b18a]">real cost.</span>
-            </h2>
-            <p className="text-[15px] leading-relaxed text-white/50">
-              We score kost properties on rent, daily living expenses, and nearby essentials so you stop guessing and start comparing.
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-[11px] tracking-[0.1em] uppercase text-white/40 mb-10">
+              <span className="h-px w-5 bg-[#c8401a]" />
+              {isLogin ? 'Welcome back' : 'Join ngekost'}
+            </div>
+
+            <h1 className="font-serif text-[clamp(36px,4vw,56px)] leading-[1.05] tracking-[-0.02em]">
+              {isLogin ? (
+                <>
+                  Sign in to<br />
+                  your <span className="italic text-[#a3b18a]">dashboard.</span>
+                </>
+              ) : (
+                <>
+                  Start analyzing<br />
+                  <span className="italic text-[#a3b18a]">kost properties.</span>
+                </>
+              )}
+            </h1>
+
+            <p className="text-[14px] text-white/45 leading-[1.75] max-w-[320px] mt-6">
+              {isLogin
+                ? 'Access your saved properties, financial projections, and AI-powered kost comparisons.'
+                : 'Create an account to unlock property scoring, cost projections, and neighborhood insights.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-8">
+          <div className="relative z-10 grid grid-cols-3 border border-white/10">
             {[
-              { num: '2,400+', label: 'Properties' },
-              { num: '18', label: 'Data points' },
-              { num: '92%', label: 'Accuracy' },
+              { val: '2,400+', label: 'Properties' },
+              { val: '18', label: 'Data points' },
+              { val: '92%', label: 'Accuracy' },
             ].map((s, i) => (
-              <div key={s.label} className="flex items-center gap-6">
-                {i > 0 && <div className="w-px h-6 bg-white/10" />}
-                <div>
-                  <div className="text-lg font-bold tracking-tight text-white/80">{s.num}</div>
-                  <div className="text-[11px] text-white/30">{s.label}</div>
+              <div
+                key={s.label}
+                className={`p-4 ${i < 2 ? 'border-r border-white/10' : ''}`}
+              >
+                <div className="font-serif text-[24px] leading-none mb-1">{s.val}</div>
+                <div className="text-[10px] text-white/35 uppercase tracking-[0.08em]">
+                  {s.label}
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Right panel — form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-[380px]">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-foreground mb-12 lg:hidden">
-            <img src="/ngekost-logo.svg" alt="ngekost" className="size-7" />
-            ngekost
+        {/* Right — form */}
+        <div className="flex flex-col justify-center bg-card px-8 py-12 md:px-16">
+          {/* Mobile header */}
+          <div className="md:hidden mb-10">
+            <div className="flex items-center gap-2 text-[11px] tracking-[0.1em] uppercase text-muted-foreground mb-6">
+              <span className="h-px w-5 bg-[#c8401a]" />
+              {isLogin ? 'Welcome back' : 'Create account'}
+            </div>
+            <h1 className="font-serif text-[32px] leading-[1.05] tracking-[-0.02em]">
+              {isLogin ? (
+                <>
+                  Sign in to<br />
+                  your <span className="italic text-[#6a9671]">dashboard.</span>
+                </>
+              ) : (
+                <>
+                  Start analyzing<br />
+                  <span className="italic text-[#6a9671]">kost properties.</span>
+                </>
+              )}
+            </h1>
           </div>
 
-          <div className="mb-8">
-            <h1 className="text-[28px] font-bold tracking-tight text-foreground">
-              {isLogin ? 'Welcome back' : 'Create account'}
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              {isLogin
-                ? 'Sign in to continue to ngekost'
-                : 'Start analyzing kost properties today'}
-            </p>
+          {/* Section label */}
+          <div className="hidden md:flex items-center gap-2 text-[11px] tracking-[0.1em] uppercase text-muted-foreground mb-6">
+            <span className="h-px w-4 bg-[#c8401a]" />
+            {isLogin ? 'Credentials' : 'Account details'}
           </div>
 
           {displayError && (
-            <div className="mb-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div className="mb-5 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {displayError}
             </div>
           )}
@@ -137,32 +173,38 @@ export const Home = () => {
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-foreground">Full Name</label>
+                <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   placeholder="John Doe"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                  className="w-full rounded-none border border-foreground bg-transparent px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-[#6a9671] focus:ring-1 focus:ring-[#6a9671]/20 transition-colors"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-foreground">Email</label>
+              <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Email
+              </label>
               <input
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                className="w-full rounded-none border border-foreground bg-transparent px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-[#6a9671] focus:ring-1 focus:ring-[#6a9671]/20 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-foreground">Password</label>
+              <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -171,14 +213,14 @@ export const Home = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
-                  className="w-full rounded-lg border border-border bg-transparent px-4 py-2.5 pr-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                  className="w-full rounded-none border border-foreground bg-transparent px-4 py-2.5 pr-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-[#6a9671] focus:ring-1 focus:ring-[#6a9671]/20 transition-colors"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-xs"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </Button>
@@ -187,7 +229,9 @@ export const Home = () => {
 
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-foreground">Confirm Password</label>
+                <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Confirm Password
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -196,14 +240,14 @@ export const Home = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full rounded-lg border border-border bg-transparent px-4 py-2.5 pr-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                    className="w-full rounded-none border border-foreground bg-transparent px-4 py-2.5 pr-10 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-[#6a9671] focus:ring-1 focus:ring-[#6a9671]/20 transition-colors"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </Button>
@@ -212,12 +256,16 @@ export const Home = () => {
             )}
 
             {isLogin && (
-              <div className="flex items-center justify-between">
-                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-muted-foreground">
-                  <input type="checkbox" defaultChecked className="size-3.5 rounded border-border accent-primary" />
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex cursor-pointer items-center gap-2 text-[12px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    className="size-3 rounded-none border-foreground accent-[#6a9671]"
+                  />
                   Remember me
                 </label>
-                <a href="#" className="text-[13px] text-primary hover:underline">
+                <a href="#" className="text-[12px] text-[#6a9671] hover:underline underline-offset-2">
                   Forgot password?
                 </a>
               </div>
@@ -226,25 +274,38 @@ export const Home = () => {
             <Button
               type="submit"
               disabled={submitting}
-              className="mt-2 h-11 rounded-lg text-sm font-semibold gap-2"
+              className="mt-3 h-11 rounded-none bg-[#344e41] text-white hover:bg-[#6a9671] border-0 text-[13px] font-medium gap-2"
             >
               {submitting ? 'Loading...' : isLogin ? 'Sign in' : 'Create account'}
               {!submitting && <ArrowRight className="size-4" />}
             </Button>
           </form>
 
-          <div className="mt-8 text-center text-[13px] text-muted-foreground">
+          {/* Toggle mode */}
+          <div className="mt-8 pt-6 border-t border-border text-center text-[13px] text-muted-foreground">
             {isLogin ? (
               <p>
                 Don&apos;t have an account?{' '}
-                <Button type="button" variant="link" size="xs" onClick={toggleMode}>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="xs"
+                  onClick={toggleMode}
+                  className="text-[#6a9671]"
+                >
                   Sign up
                 </Button>
               </p>
             ) : (
               <p>
                 Already have an account?{' '}
-                <Button type="button" variant="link" size="xs" onClick={toggleMode}>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="xs"
+                  onClick={toggleMode}
+                  className="text-[#6a9671]"
+                >
                   Sign in
                 </Button>
               </p>

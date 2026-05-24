@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getValidAccessToken, type ChatMessage } from '../lib/api';
 import { streamChat } from '../lib/ws';
@@ -15,19 +15,15 @@ import {
   Calculator,
   TrendingUp,
   Building2,
-  Ruler,
   Wifi,
   Wind,
   Bath,
   Car,
   Flame,
-  Zap,
   Star,
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import ReactMarkdown from 'react-markdown';
@@ -51,24 +47,14 @@ function formatPrice(priceIdr: number | null, priceDisplay: string | null) {
 
 function GenderBadge({ gender }: { gender: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    putra: { label: 'Male', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-    putri: { label: 'Female', className: 'bg-pink-50 text-pink-700 border-pink-200' },
-    campur: { label: 'Mixed', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    putra: { label: 'Male', className: 'bg-[var(--chart-3)] text-[var(--background)]' },
+    putri: { label: 'Female', className: 'bg-primary text-[var(--background)]' },
+    campur: { label: 'Mixed', className: 'bg-muted-foreground text-[var(--background)]' },
   };
   const c = config[gender] || config.campur;
   return (
-    <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 font-medium border ${c.className}`}>
+    <span className={`text-[9px] px-1.5 py-0.5 font-medium tracking-[0.04em] uppercase ${c.className}`}>
       {c.label}
-    </Badge>
-  );
-}
-
-function FacilityTag({ name }: { name: string }) {
-  const Icon = facilityIcons[name];
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-[#344e41]/5 px-1.5 py-0.5 text-[10px] text-[#344e41] font-medium">
-      {Icon && <Icon className="size-2.5" />}
-      {name}
     </span>
   );
 }
@@ -88,6 +74,21 @@ const quickActions = [
   { icon: TrendingUp, label: 'Compare properties', prompt: 'Compare 3 best properties in Sudirman area' },
 ];
 
+const greetings = [
+  (name: string, tod: string) => ({ pre: `What's up, `, name, suf: '.', sub: `How can we help this ${tod}?` }),
+  (name: string, tod: string) => ({ pre: `Hey `, name, suf: ',', sub: 'Looking for a place tonight?' }),
+  (name: string, tod: string) => ({ pre: `Good to see you, `, name, suf: '.', sub: 'Need help finding the right kost?' }),
+  (name: string, tod: string) => ({ pre: '', name, suf: `, let's find your spot.`, sub: 'What are you looking for?' }),
+  (name: string, tod: string) => ({ pre: `Welcome back, `, name, suf: '.', sub: 'Any kost on your mind?' }),
+  (name: string, tod: string) => ({ pre: `Alright, `, name, suf: '.', sub: 'Where should we start looking?' }),
+];
+
+function getGreeting(name: string) {
+  const h = new Date().getHours();
+  const tod = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  return greetings[Math.floor(Math.random() * greetings.length)](name || 'there', tod);
+}
+
 export const Chat = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -101,8 +102,8 @@ export const Chat = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const firstName = user?.display_name?.split(' ')[0] || '';
+  const greeting = useMemo(() => getGreeting(firstName), [firstName]);
 
-  // Load existing messages when opening a conversation, or reset for new chat
   useEffect(() => {
     if (!id) {
       setMessages([]);
@@ -262,31 +263,32 @@ export const Chat = () => {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="relative z-10 flex h-screen flex-col bg-[#f5f5f5]">
+    <div className="relative z-10 flex h-screen flex-col bg-background font-sans text-foreground">
 
       {/* ─── Content ─── */}
       <ScrollArea className="flex-1">
         {isEmpty ? (
-          /* Welcome state */
-          <div className="flex min-h-[calc(100vh-200px)] flex-col items-center px-6 pt-6 pb-4">
+          /* ─── Welcome State ─── */
+          <div className="flex min-h-[calc(100vh-200px)] flex-col items-center px-6 pt-10 pb-4">
+            {/* Editorial heading */}
             <div className="text-center">
-              <h2 className="text-[25px] font-normal text-[#151515] leading-tight">
-                What's Up <span className="font-bold">{firstName || 'there'}</span>.
+              <h2 className="font-serif text-[clamp(32px,4vw,48px)] leading-[1.05] tracking-[-0.02em] text-foreground">
+                {greeting.pre}<span className="italic text-primary">{greeting.name}</span>{greeting.suf}
               </h2>
-              <p className="text-[22px] text-[#151515] leading-tight mt-0.5">
-                How can i help you this evening?
+              <p className="font-serif text-[clamp(18px,2.2vw,24px)] text-muted-foreground leading-[1.2] mt-1">
+                {greeting.sub}
               </p>
             </div>
 
-            {/* Quick actions */}
-            <div className="mt-5 flex flex-wrap justify-center gap-1.5">
+            {/* Quick actions — square editorial buttons */}
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
               {quickActions.map((a) => (
                 <Button
                   key={a.label}
                   variant="outline"
                   size="xs"
                   onClick={() => handleSend(a.prompt)}
-                  className="rounded-full text-[#344e41] hover:border-[#344e41]/40 hover:bg-[#344e41]/5"
+                  className="rounded-none border-[var(--chart-3)]/30 text-foreground hover:bg-[var(--chart-3)] hover:text-[var(--background)] transition-colors text-[12px] font-medium tracking-[0.02em]"
                 >
                   <a.icon className="size-3" />
                   {a.label}
@@ -294,66 +296,73 @@ export const Chat = () => {
               ))}
             </div>
 
-            {/* Listings */}
-            <div className="mt-5 w-full max-w-lg">
-              <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#94a3b8] px-0.5">Recommendations</span>
-              <div className="mt-1.5 grid grid-cols-2 gap-3">
+            {/* Recommendations — editorial list */}
+            <div className="mt-8 w-full max-w-lg">
+              <div className="flex items-center justify-between border-t border-[var(--chart-3)] pt-2 mb-3">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Recommendations
+                </span>
+                <span className="size-1.5 bg-[#c8401a]" style={{ animation: 'pulse 2s ease-in-out infinite' }} />
+              </div>
+              <div className="grid grid-cols-2 gap-0 border border-[var(--chart-3)]/20">
                 {MOCK_DATA.slice(0, 2).map((item, i) => (
-                  <Card
+                  <div
                     key={item.title}
                     onClick={() => navigate(`/kost/${i}`)}
-                    className="group cursor-pointer overflow-hidden border border-[#cbd5e1]/50 bg-white shadow-none transition-all hover:shadow-sm hover:border-[#344e41]/20"
+                    className={`group cursor-pointer bg-card transition-colors hover:bg-primary/[0.04] ${i === 0 ? 'border-r border-[var(--chart-3)]/20' : ''}`}
                   >
-                    <div className="relative w-full bg-[#e4e5f1] -mt-4">
+                    <div className="relative w-full bg-muted">
                       <AspectRatio ratio={4 / 3}>
                         {item.images && Object.values(item.images)[0] ? (
                           <img src={Object.values(item.images)[0]} alt={item.title} className="h-full w-full object-cover" />
                         ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <Building2 className="size-6 text-[#cbd5e1]" />
+                          <div className="flex h-full items-center justify-center border-b border-[var(--chart-3)]/10">
+                            <Building2 className="size-5 text-border" />
                           </div>
                         )}
                       </AspectRatio>
-                      <div className="absolute top-1.5 left-1.5">
+                      <div className="absolute top-1 left-1">
                         <GenderBadge gender={item.gender_normalized} />
                       </div>
                     </div>
-                    <div className="px-2.5 pt-2 pb-2.5">
-                      <h3 className="text-[11px] font-semibold text-[#151515] leading-tight truncate group-hover:text-[#344e41] transition-colors">
+                    <div className="px-3 pt-2 pb-3 border-t border-[var(--chart-3)]/10">
+                      <h3 className="text-[12px] font-semibold text-foreground leading-tight truncate group-hover:text-primary transition-colors">
                         {item.title}
                       </h3>
-                      <div className="mt-0.5 flex items-center gap-1 text-[10px] text-[#94a3b8]">
+                      <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
                         <MapPin className="size-2 shrink-0" />
                         <span className="truncate">{item.formatted_address}</span>
                       </div>
-                      <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                        {item.has_wifi && <Wifi className="size-2.5 text-[#64748b]" />}
-                        {item.has_ac && <Wind className="size-2.5 text-[#64748b]" />}
-                        {item.has_private_bathroom && <Bath className="size-2.5 text-[#64748b]" />}
-                        {item.has_parking && <Car className="size-2.5 text-[#64748b]" />}
+                      <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                        {item.has_wifi && <Wifi className="size-2.5 text-muted-foreground" />}
+                        {item.has_ac && <Wind className="size-2.5 text-muted-foreground" />}
+                        {item.has_private_bathroom && <Bath className="size-2.5 text-muted-foreground" />}
+                        {item.has_parking && <Car className="size-2.5 text-muted-foreground" />}
                       </div>
-                      <div className="mt-1.5 flex items-end justify-between">
+                      <div className="mt-2 pt-2 border-t border-[var(--chart-3)]/10 flex items-end justify-between">
                         <div>
-                          <span className="text-[11px] font-bold text-[#344e41]">
+                          <span className="font-serif text-[14px] text-primary">
                             {formatPrice(item.price_idr, item.price_display)}
                           </span>
-                          {item.rent_type && <span className="text-[9px] text-[#94a3b8]">/{item.rent_type}</span>}
+                          {item.rent_type && (
+                            <span className="text-[9px] text-muted-foreground">/{item.rent_type}</span>
+                          )}
                         </div>
                         {item.rating != null && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[#151515]">
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-foreground">
                             <Star className="size-2.5 fill-amber-400 text-amber-400" />
                             {item.rating.toFixed(1)}
                           </span>
                         )}
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
         ) : (
-          /* Messages */
+          /* ─── Messages ─── */
           <div className="mx-auto max-w-[680px] px-5 md:px-8 py-6 flex flex-col gap-5">
             {messages.map((msg) => (
               <div
@@ -361,28 +370,28 @@ export const Chat = () => {
                 className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'ai' && (
-                  <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-[#344e41]/10">
+                  <div className="mt-1 flex size-7 shrink-0 items-center justify-center border border-[var(--chart-3)]/20 bg-card">
                     <img src="/ngekost-logo.svg" alt="" className="size-4" />
                   </div>
                 )}
 
                 <div className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : ''} max-w-[85%]`}>
                   {msg.toolCalls && (
-                    <div className="flex items-center gap-1.5 rounded-full bg-[#344e41]/6 px-3 py-1">
-                      <Wrench className="size-3 text-[#344e41]" />
-                      <span className="text-[11px] font-medium text-[#344e41]">{msg.toolCalls}</span>
+                    <div className="flex items-center gap-2 bg-[var(--chart-3)] px-3 py-1.5">
+                      <Wrench className="size-3 text-[var(--background)]/70" />
+                      <span className="text-[11px] font-medium text-[var(--background)]/70 tracking-[0.02em]">{msg.toolCalls}</span>
                     </div>
                   )}
 
                   {msg.searchStatus && msg.searchStatus.length > 0 && (
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 pl-1 border-l-2 border-[var(--chart-3)]/20">
                       {msg.searchStatus.map((status, i) => (
-                        <span key={i} className="text-[12px] text-[#94a3b8] flex items-center gap-1.5">
+                        <span key={i} className="text-[12px] text-muted-foreground flex items-center gap-1.5">
                           {status}
                           {msg.isStreaming && i === msg.searchStatus!.length - 1 && (
-                            <span className="relative flex size-1">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#344e41]/40" />
-                              <span className="relative inline-flex size-1 rounded-full bg-[#344e41]/60" />
+                            <span className="relative flex size-1.5">
+                              <span className="absolute inline-flex h-full w-full animate-ping bg-[#c8401a]/40" />
+                              <span className="relative inline-flex size-1.5 bg-[#c8401a]/70" />
                             </span>
                           )}
                         </span>
@@ -391,29 +400,29 @@ export const Chat = () => {
                   )}
 
                   {msg.role === 'user' ? (
-                    <div className="rounded-2xl rounded-br-sm bg-[#344e41] px-4 py-2.5">
-                      <p className="text-sm leading-relaxed text-white whitespace-pre-wrap m-0">
+                    <div className="bg-[var(--chart-3)] px-4 py-2.5">
+                      <p className="text-sm leading-relaxed text-[var(--background)] whitespace-pre-wrap m-0">
                         {msg.text}
                       </p>
                     </div>
                   ) : (
                     <>
                       {(msg.text || msg.isStreaming) && (
-                        <div className="prose-chat text-sm leading-[1.8] text-[#151515]">
+                        <div className="prose-chat text-sm leading-[1.8] text-foreground">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {msg.text}
                           </ReactMarkdown>
                           {msg.isStreaming && (
-                            <span className="inline-block w-0.5 h-3.5 bg-[#344e41]/50 ml-0.5 align-middle animate-pulse" />
+                            <span className="inline-block w-0.5 h-4 bg-[var(--chart-3)]ml-0.5 align-middle animate-pulse" />
                           )}
                         </div>
                       )}
 
                       {msg.isStreaming && !msg.text && (
-                        <div className="flex items-center gap-1 py-1 px-1">
-                          <span className="size-1.5 rounded-full bg-[#94a3b8]/40 animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="size-1.5 rounded-full bg-[#94a3b8]/40 animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="size-1.5 rounded-full bg-[#94a3b8]/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <div className="flex items-center gap-2 py-1 px-1">
+                          <span className="size-1 bg-foreground/30 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="size-1 bg-foreground/30 animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="size-1 bg-foreground/30 animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                       )}
                     </>
@@ -428,61 +437,69 @@ export const Chat = () => {
 
       {/* ─── Input Bar ─── */}
       <div className="shrink-0 px-4 pb-6 pt-2">
-        <div className="mx-auto max-w-[480px] rounded-[15px] border border-[#cbd5e1] bg-white">
+        <div className="mx-auto max-w-[520px] border border-[var(--chart-3)] bg-card">
           <Textarea
             ref={inputRef}
-            placeholder="Chat with AI..."
+            placeholder="Ask about kost, costs, locations..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             disabled={isStreaming}
             rows={1}
-            className="min-h-0 border-0 px-4 pt-3 pb-1 text-[14px] text-[#151515] placeholder:text-[#94a3b8] focus-visible:ring-0 resize-none"
+            className="min-h-0 border-0 px-4 pt-3 pb-2 text-[14px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 resize-none bg-transparent"
           />
-          <div className="flex items-center justify-between px-3 pb-3 pt-0.5">
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-between px-3 pb-2 pt-2 border-t border-[var(--chart-3)]/10">
+            <div className="flex items-center gap-1">
               <Button
                 type="button"
                 variant="outline"
                 size="icon-sm"
-                className="rounded-full border-[#cbd5e1] bg-[#f5f5f5] hover:bg-[#eee]"
+                className="rounded-none border-[var(--chart-3)]/20 bg-transparent hover:bg-[var(--chart-3)] hover:text-[var(--background)] transition-colors"
               >
-                <Plus className="size-3.5 text-[#94a3b8]" />
+                <Plus className="size-3.5 text-muted-foreground" />
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="icon-sm"
-                className="rounded-full border-[#cbd5e1] bg-[#f5f5f5] hover:bg-[#eee]"
+                className="rounded-none border-[var(--chart-3)]/20 bg-transparent hover:bg-[var(--chart-3)] hover:text-[var(--background)] transition-colors"
               >
-                <Settings2 className="size-3.5 text-[#94a3b8]" />
+                <Settings2 className="size-3.5 text-muted-foreground" />
               </Button>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <Button
                 type="button"
                 variant="outline"
                 size="icon-sm"
-                className="rounded-full border-[#cbd5e1] bg-[#f5f5f5] hover:bg-[#eee]"
+                className="rounded-none border-[var(--chart-3)]/20 bg-transparent hover:bg-[var(--chart-3)] hover:text-[var(--background)] transition-colors"
               >
-                <Mic className="size-3.5 text-[#94a3b8]" />
+                <Mic className="size-3.5 text-muted-foreground" />
               </Button>
               <Button
                 type="button"
                 size="icon-sm"
                 onClick={() => handleSend()}
                 disabled={isStreaming || !inputText.trim()}
-                className="rounded-full bg-[#344e41] hover:bg-[#3a5c40]"
+                className="rounded-none bg-[var(--chart-3)] text-[var(--background)] hover:bg-primary transition-colors border-0"
               >
-                <ArrowUp className="size-3.5 text-white" />
+                <ArrowUp className="size-3.5" />
               </Button>
             </div>
           </div>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-[#94a3b8]/60">
+        <p className="mt-2 text-center text-[10px] text-muted-foreground/50 tracking-[0.02em]">
           ngekost AI may make mistakes — verify important information before making decisions.
         </p>
       </div>
+
+      {/* Keyframes */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
+        }
+      `}</style>
     </div>
   );
 };
