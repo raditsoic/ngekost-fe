@@ -11,6 +11,8 @@ import {
   Mic,
   Settings2,
   Wrench,
+  Check,
+  Search,
   MapPin,
   Calculator,
   TrendingUp,
@@ -59,12 +61,21 @@ function GenderBadge({ gender }: { gender: string }) {
   );
 }
 
+type ToolCallItem = {
+  id: string;
+  name: string;
+  params?: unknown;
+  result?: unknown;
+  status: 'running' | 'completed' | 'error';
+  error?: string;
+  executionTimeMs?: number;
+};
+
 export type Message = {
   id: string;
   role: 'user' | 'ai';
   text: string;
-  toolCalls?: string;
-  searchStatus?: string[];
+  toolCallItems?: ToolCallItem[];
   isStreaming?: boolean;
 };
 
@@ -73,6 +84,116 @@ const quickActions = [
   { icon: Calculator, label: 'Calculate monthly costs', prompt: 'Calculate my estimated monthly expenses' },
   { icon: TrendingUp, label: 'Compare properties', prompt: 'Compare 3 best properties in Sudirman area' },
 ];
+
+const toolIcons: Record<string, React.ElementType> = {
+  search_properties: Search,
+  search_property: Search,
+  search: Search,
+  calculate_cost: Calculator,
+  calculate: Calculator,
+  analyze_location: MapPin,
+  get_location: MapPin,
+  compare_properties: TrendingUp,
+  compare: TrendingUp,
+  get_poi: Building2,
+  find_poi: Building2,
+  financial_projection: Calculator,
+};
+
+function formatToolName(name: string): string {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatParamValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return value.toLocaleString();
+  if (typeof value === 'boolean') return value ? 'yes' : 'no';
+  if (Array.isArray(value)) return `${value.length} items`;
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function formatResultPreview(result: unknown): string {
+  if (result === null || result === undefined) return '';
+  if (typeof result === 'string') return result.length > 120 ? result.slice(0, 120) + '...' : result;
+  if (typeof result === 'object' && result !== null) {
+    if (Array.isArray(result)) return `${result.length} results`;
+    const obj = result as Record<string, unknown>;
+    if (obj.summary) return String(obj.summary);
+    if (obj.message) return String(obj.message);
+    const keys = Object.keys(obj);
+    if (keys.length <= 3) return keys.map(k => `${k}: ${formatParamValue(obj[k])}`).join(' · ');
+    return `${keys.length} fields`;
+  }
+  return String(result);
+}
+
+function ToolCallBlock({ item }: { item: ToolCallItem }) {
+  const Icon = toolIcons[item.name] || Wrench;
+  const params = item.params as Record<string, unknown> | undefined;
+  const paramEntries = params ? Object.entries(params) : [];
+
+  return (
+    <div className="border border-foreground/15">
+      <div className="flex items-center justify-between bg-foreground/[0.03] px-3 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <Icon className="size-3 text-foreground/50" />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-foreground/70">
+            {formatToolName(item.name)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {item.executionTimeMs != null && (
+            <span className="text-[9px] font-mono text-muted-foreground">
+              {item.executionTimeMs >= 1000
+                ? `${(item.executionTimeMs / 1000).toFixed(1)}s`
+                : `${Math.round(item.executionTimeMs)}ms`}
+            </span>
+          )}
+          {item.status === 'running' ? (
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping bg-[#c8401a]/40" />
+              <span className="relative inline-flex size-1.5 bg-[#c8401a]" />
+            </span>
+          ) : item.status === 'error' ? (
+            <span className="size-1.5 bg-red-500" />
+          ) : (
+            <Check className="size-2.5 text-emerald-600" />
+          )}
+        </div>
+      </div>
+
+      {paramEntries.length > 0 && (
+        <div className="px-3 py-1 border-t border-foreground/5">
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            {paramEntries.map(([k, v]) => (
+              <span key={k} className="text-[11px] text-muted-foreground">
+                <span className="text-foreground/50">{k}:</span>{' '}
+                <span className="font-mono text-foreground/70">{formatParamValue(v)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {item.result != null && (
+        <div className="px-3 py-1 border-t border-foreground/5">
+          <span className="text-[11px] text-muted-foreground">
+            <span className="text-foreground/40">→</span>{' '}
+            <span className="text-foreground/70">{formatResultPreview(item.result)}</span>
+          </span>
+        </div>
+      )}
+
+      {item.error && (
+        <div className="px-3 py-1 border-t border-red-500/10 bg-red-500/[0.03]">
+          <span className="text-[11px] text-red-600/80">{item.error}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const greetings = [
   (name: string, tod: string) => ({ pre: `What's up, `, name, suf: '.', sub: `How can we help this ${tod}?` }),
@@ -167,8 +288,7 @@ export const Chat = () => {
     setInputText('');
     setIsStreaming(true);
 
-    let toolCallCount = 0;
-    const searchStatuses: string[] = [];
+    const toolCallItems: ToolCallItem[] = [];
 
     const handle = streamChat({
       message: text,
@@ -200,17 +320,34 @@ export const Chat = () => {
                 }
                 break;
 
-              case 'tool_call':
-                toolCallCount++;
-                updated.toolCalls = `${toolCallCount} tool call${toolCallCount > 1 ? 's' : ''}`;
-                if (event.tool) {
-                  const status = `Using ${event.tool}`;
-                  if (!searchStatuses.includes(status)) {
-                    searchStatuses.push(status);
-                    updated.searchStatus = [...searchStatuses];
-                  }
-                }
+              case 'tool_call': {
+                const tc: ToolCallItem = {
+                  id: crypto.randomUUID(),
+                  name: event.tool || 'unknown',
+                  params: event.params,
+                  result: event.result,
+                  status: event.result != null ? 'completed' : 'running',
+                  error: (event as Record<string, unknown>).error as string | undefined,
+                  executionTimeMs: (event as Record<string, unknown>).execution_time_ms as number | undefined,
+                };
+                toolCallItems.push(tc);
+                updated.toolCallItems = [...toolCallItems];
                 break;
+              }
+
+              case 'tool_result': {
+                const target = [...toolCallItems]
+                  .reverse()
+                  .find(tc => tc.name === event.tool && tc.status === 'running');
+                if (target) {
+                  target.result = event.result;
+                  target.status = (event as Record<string, unknown>).error ? 'error' : 'completed';
+                  target.error = (event as Record<string, unknown>).error as string | undefined;
+                  target.executionTimeMs = (event as Record<string, unknown>).execution_time_ms as number | undefined;
+                }
+                updated.toolCallItems = [...toolCallItems];
+                break;
+              }
 
               case 'session_start':
               case 'answer_start':
@@ -235,9 +372,16 @@ export const Chat = () => {
         }
 
         setMessages(prev =>
-          prev.map(msg =>
-            msg.id === aiMsgId ? { ...msg, isStreaming: false } : msg,
-          ),
+          prev.map(msg => {
+            if (msg.id !== aiMsgId) return msg;
+            const updated = { ...msg, isStreaming: false };
+            if (updated.toolCallItems) {
+              updated.toolCallItems = updated.toolCallItems.map(tc =>
+                tc.status === 'running' ? { ...tc, status: 'completed' as const } : tc,
+              );
+            }
+            return updated;
+          }),
         );
         setIsStreaming(false);
         wsHandleRef.current = null;
@@ -376,25 +520,10 @@ export const Chat = () => {
                 )}
 
                 <div className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : ''} max-w-[85%]`}>
-                  {msg.toolCalls && (
-                    <div className="flex items-center gap-2 bg-[var(--chart-3)] px-3 py-1.5">
-                      <Wrench className="size-3 text-[var(--background)]/70" />
-                      <span className="text-[11px] font-medium text-[var(--background)]/70 tracking-[0.02em]">{msg.toolCalls}</span>
-                    </div>
-                  )}
-
-                  {msg.searchStatus && msg.searchStatus.length > 0 && (
-                    <div className="flex flex-col gap-0.5 pl-1 border-l-2 border-[var(--chart-3)]/20">
-                      {msg.searchStatus.map((status, i) => (
-                        <span key={i} className="text-[12px] text-muted-foreground flex items-center gap-1.5">
-                          {status}
-                          {msg.isStreaming && i === msg.searchStatus!.length - 1 && (
-                            <span className="relative flex size-1.5">
-                              <span className="absolute inline-flex h-full w-full animate-ping bg-[#c8401a]/40" />
-                              <span className="relative inline-flex size-1.5 bg-[#c8401a]/70" />
-                            </span>
-                          )}
-                        </span>
+                  {msg.toolCallItems && msg.toolCallItems.length > 0 && (
+                    <div className="flex flex-col gap-1 max-w-full">
+                      {msg.toolCallItems.map(tc => (
+                        <ToolCallBlock key={tc.id} item={tc} />
                       ))}
                     </div>
                   )}

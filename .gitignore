@@ -26,10 +26,6 @@ dist-ssr
 # Build info
 *.tsbuildinfo
 
-# Lock files
-bun.lock
-package-lock.json
-
 # Claude Code
 .claude/
 
