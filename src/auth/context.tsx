@@ -19,6 +19,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -51,7 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.login(email, password);
       setTokens(res.access_token, res.refresh_token);
-      setUser(res.user);
+      const me = await api.getMe();
+      setUser(me);
     } catch (e) {
       const msg = e instanceof ApiError && e.status === 401
         ? 'Invalid email or password'
@@ -68,7 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.register(email, password, displayName);
       setTokens(res.access_token, res.refresh_token);
-      setUser(res.user);
+      const me = await api.getMe();
+      setUser(me);
     } catch (e) {
       const msg = e instanceof ApiError && e.status === 409
         ? 'Email already registered'
@@ -88,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearError = useCallback(() => setError(null), []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, error, login, register, logout, clearError }}>
+    <AuthContext.Provider value={{ user, isLoading, error, setUser, login, register, logout, clearError }}>
       {children}
     </AuthContext.Provider>
   );

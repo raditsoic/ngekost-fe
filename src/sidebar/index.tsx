@@ -5,6 +5,7 @@ import {
   Plus,
   Building2,
   ChartNoAxesColumn,
+  Calculator,
   History,
   Settings,
   LogOut,
@@ -38,6 +39,7 @@ const sections = [
   { label: 'New Chat', icon: Plus, to: '/chat/new' },
   { label: 'Properties', icon: Building2, to: '/properties' },
   { label: 'Financial', icon: ChartNoAxesColumn, to: '/financial' },
+  { label: 'Budget Plans', icon: Calculator, to: '/me/budget-plans' },
 ];
 
 function NavContent({ onSearchOpen }: { onSearchOpen: () => void }) {
@@ -77,7 +79,7 @@ function NavContent({ onSearchOpen }: { onSearchOpen: () => void }) {
       </button>
 
       {sections.map((section) => {
-        const active = location.pathname === section.to;
+        const active = location.pathname === section.to || location.pathname.startsWith(section.to + '/');
         const Icon = section.icon;
         return (
           <Link

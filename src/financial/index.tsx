@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -8,6 +8,7 @@ import {
   MapPin,
   Calendar,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import {
   PieChart,
@@ -26,23 +27,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-
-interface Transaction {
-  id: number;
-  title: string;
-  amount: number;
-  category: string;
-  date: string;
-}
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: 1, title: 'Food 1', amount: -12500, category: 'Konsumsi', date: '12 May 2026' },
-  { id: 2, title: 'Essential 1', amount: -45000, category: 'Utilitas', date: '11 May 2026' },
-  { id: 3, title: 'Entertainment 1', amount: -75000, category: 'Lainnya', date: '10 May 2026' },
-  { id: 4, title: 'Essential 2', amount: -30000, category: 'Utilitas', date: '09 May 2026' },
-  { id: 5, title: 'Transport 1', amount: -20000, category: 'Transportasi', date: '08 May 2026' },
-  { id: 6, title: 'Kost Bulanan', amount: -1500000, category: 'Sewa', date: '01 May 2026' },
-];
+import {
+  api,
+  type FinancialOverviewResponse,
+  type Transaction,
+} from '../lib/api';
 
 const CATEGORY_COLORS: Record<string, string> = {
   Konsumsi: '#a3b18a',
@@ -64,17 +53,6 @@ const categoryLabels: Record<string, string> = {
   Transportasi: 'Transport',
   Sewa: 'Rent',
 };
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-
-const mockExpected = [2800000, 2800000, 2800000, 2800000, 2800000, 2800000];
-const mockActual   = [3100000, 2500000, 2900000, 3200000, 2750000, 262500];
-
-const monthlyData = MONTHS.map((month, i) => ({
-  month,
-  expected: mockExpected[i],
-  actual: mockActual[i],
-}));
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Math.abs(amount));
@@ -106,19 +84,80 @@ function SectionHeader({ label, subtitle }: { label: string; subtitle?: string }
 
 export const Financial = () => {
   const navigate = useNavigate();
-  const [transactions] = useState(MOCK_TRANSACTIONS);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [incomeInput, setIncomeInput] = useState('5000000');
-  const [editingIncome, setEditingIncome] = useState(false);
 
-  const totalIncome = Number(incomeInput) || 0;
-  const totalExpenses = transactions.reduce((s, t) => s + Math.abs(t.amount), 0);
+  // ── Data state ──────────────────────────────────────────────────────
+  const [overview, setOverview] = useState<FinancialOverviewResponse | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ── UI state ────────────────────────────────────────────────────────
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [incomeInput, setIncomeInput] = useState('');
+  const [editingIncome, setEditingIncome] = useState(false);
+  const [savingIncome, setSavingIncome] = useState(false);
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+
+  // ── Add-transaction form state ──────────────────────────────────────
+  const [formAmount, setFormAmount] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formDate, setFormDate] = useState('');
+  const [formTitle, setFormTitle] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // ── Data fetching ───────────────────────────────────────────────────
+  const fetchOverview = useCallback(async (p: 'daily' | 'weekly' | 'monthly') => {
+    try {
+      const overviewRes = await api.getFinancialOverview({ period: p });
+      console.log('[financial] overview response:', overviewRes);
+      setOverview(overviewRes.data);
+      setIncomeInput(String(overviewRes.data.income));
+    } catch (err) {
+      console.error('[financial] overview fetch failed:', err);
+    }
+  }, []);
+
+  const fetchTransactions = useCallback(async () => {
+    try {
+      const txRes = await api.listTransactions({ limit: 20 });
+      console.log('[financial] transactions response:', txRes);
+      // Deduplicate by id — backend may return duplicates
+      const seen = new Set<string>();
+      const unique = txRes.data.transactions.filter((t) => {
+        if (seen.has(t.id)) return false;
+        seen.add(t.id);
+        return true;
+      });
+      setTransactions(unique);
+    } catch (err) {
+      console.error('[financial] transactions fetch failed:', err);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([fetchOverview(period), fetchTransactions()])
+      .catch(() => setError('Failed to load financial data'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Refetch overview when period changes
+  useEffect(() => {
+    fetchOverview(period);
+  }, [period, fetchOverview]);
+
+  // ── Derived data ────────────────────────────────────────────────────
+  const totalIncome = overview?.income ?? 0;
+  const totalExpenses = useMemo(
+    () => transactions.reduce((s, t) => s + Math.abs(t.amount), 0),
+    [transactions],
+  );
 
   const pieData = useMemo(() => {
     const grouped: Record<string, number> = {};
     transactions.forEach((t) => {
-      const cat = t.category;
-      grouped[cat] = (grouped[cat] || 0) + Math.abs(t.amount);
+      grouped[t.category] = (grouped[t.category] || 0) + Math.abs(t.amount);
     });
     return Object.entries(grouped)
       .sort((a, b) => b[1] - a[1])
@@ -128,6 +167,92 @@ export const Financial = () => {
         color: CATEGORY_COLORS[cat] || '#93b599',
       }));
   }, [transactions]);
+
+  const monthlyData = useMemo(
+    () => overview?.monthlyAggregation ?? [],
+    [overview],
+  );
+
+  const activeLease = overview?.activeLease ?? null;
+
+  // ── Handlers ────────────────────────────────────────────────────────
+  const handleIncomeSave = async () => {
+    const newIncome = Number(incomeInput);
+    if (!newIncome || newIncome < 0) return;
+    setSavingIncome(true);
+    try {
+      const res = await api.updateIncome({ income: newIncome });
+      console.log('[financial] income updated:', res);
+      setOverview((prev) => prev ? { ...prev, income: newIncome } : prev);
+    } catch (err) {
+      console.error('[financial] income update failed:', err);
+      // Silently revert on failure
+      setIncomeInput(String(totalIncome));
+    } finally {
+      setSavingIncome(false);
+      setEditingIncome(false);
+    }
+  };
+
+  const handleAddTransaction = async () => {
+    if (!formAmount || !formCategory || !formDate) return;
+    setSubmitting(true);
+    try {
+      const res = await api.createTransaction({
+        amount: Number(formAmount),
+        category: formCategory,
+        date: formDate,
+        title: formTitle || undefined,
+      });
+      console.log('[financial] transaction created:', res);
+      setShowAddModal(false);
+      setFormAmount('');
+      setFormCategory('');
+      setFormDate('');
+      setFormTitle('');
+      Promise.all([fetchOverview(period), fetchTransactions()]);
+    } catch (err) {
+      console.error('[financial] transaction create failed:', err);
+      // Keep modal open on error so user can retry
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const formatDueDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `Due ${d.getDate()} ${d.toLocaleDateString('en-GB', { month: 'short' })}`;
+  };
+
+  // ── Loading skeleton ────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="relative z-10 flex h-svh items-center justify-center bg-background">
+        <Loader2 className="size-6 animate-spin text-[var(--chart-3)]" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative z-10 flex h-svh flex-col items-center justify-center gap-3 bg-background">
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <Button
+          size="sm"
+          onClick={() => {
+            setLoading(true);
+            setError(null);
+            Promise.all([fetchOverview(period), fetchTransactions()])
+              .catch(() => setError('Failed to load financial data'))
+              .finally(() => setLoading(false));
+          }}
+          className="rounded-none bg-[var(--chart-3)] text-[var(--background)] hover:bg-[var(--chart-2)]"
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative z-10 flex h-svh flex-col bg-background">
@@ -172,12 +297,14 @@ export const Financial = () => {
                     type="text"
                     value={incomeInput}
                     onChange={(e) => setIncomeInput(e.target.value.replace(/\D/g, ''))}
-                    onBlur={() => setEditingIncome(false)}
-                    onKeyDown={(e) => e.key === 'Enter' && setEditingIncome(false)}
+                    onBlur={handleIncomeSave}
+                    onKeyDown={(e) => e.key === 'Enter' && handleIncomeSave()}
                     autoFocus
+                    disabled={savingIncome}
                     className="w-full bg-transparent text-lg font-serif font-medium outline-none text-[var(--chart-3)] placeholder:text-muted-foreground/50"
                     placeholder="5000000"
                   />
+                  {savingIncome && <Loader2 className="size-3.5 animate-spin text-[var(--chart-5)]" />}
                 </div>
               ) : (
                 <p className="text-lg font-serif font-medium text-[var(--chart-3)]">{formatCurrency(totalIncome)}</p>
@@ -201,36 +328,48 @@ export const Financial = () => {
                   Browse
                 </Button>
               </div>
-              <div
-                onClick={() => navigate(`/property/${encodeURIComponent('Kost Skyla VVIP Wonokromo')}`)}
-                className="flex gap-3 p-4 cursor-pointer transition-colors hover:bg-[var(--chart-3)]/[0.03]"
-              >
-                <div className="size-14 shrink-0 bg-[var(--chart-1)]/10 overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=400&auto=format&fit=crop"
-                    alt="Kost Skyla VVIP Wonokromo"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Kost Skyla VVIP Wonokromo</p>
-                  <div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <MapPin className="size-2.5 shrink-0" />
-                    <span className="truncate">Jl. Kapasari No.132, Surabaya</span>
+              {activeLease ? (
+                <div
+                  onClick={() => navigate(`/property/${encodeURIComponent(activeLease.property.id)}`)}
+                  className="flex gap-3 p-4 cursor-pointer transition-colors hover:bg-[var(--chart-3)]/[0.03]"
+                >
+                  <div className="size-14 shrink-0 bg-[var(--chart-1)]/10 overflow-hidden">
+                    {activeLease.property.imageUrl ? (
+                      <img
+                        src={activeLease.property.imageUrl}
+                        alt={activeLease.property.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                        <ImageIcon className="size-4" />
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-2 flex items-center gap-3">
-                    <span className="text-xs font-serif font-medium text-[var(--chart-3)]">
-                      Rp2.500.000
-                      <span className="font-sans font-normal text-muted-foreground">/bulan</span>
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] text-[var(--chart-5)]">
-                      <Calendar className="size-2.5" />
-                      Due 1 Jun
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{activeLease.property.name}</p>
+                    <div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <MapPin className="size-2.5 shrink-0" />
+                      <span className="truncate">{activeLease.property.address}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-3">
+                      <span className="text-xs font-serif font-medium text-[var(--chart-3)]">
+                        {formatCurrency(activeLease.rentDetails.amount)}
+                        <span className="font-sans font-normal text-muted-foreground">/{activeLease.rentDetails.period}</span>
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] text-[var(--chart-5)]">
+                        <Calendar className="size-2.5" />
+                        {formatDueDate(activeLease.rentDetails.nextDueDate)}
+                      </span>
+                    </div>
                   </div>
+                  <ExternalLink className="size-3.5 text-[var(--chart-5)] shrink-0 mt-0.5" />
                 </div>
-                <ExternalLink className="size-3.5 text-[var(--chart-5)] shrink-0 mt-0.5" />
-              </div>
+              ) : (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-xs text-muted-foreground">No active lease</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -239,23 +378,31 @@ export const Financial = () => {
             {/* Transaction History */}
             <div className="border border-[var(--chart-3)]">
               <SectionHeader label="History" subtitle="Recent" />
-              <div className="divide-y divide-border">
-                {transactions.map((t, i) => (
-                  <div key={t.id} className="flex items-center gap-3 px-4 py-2.5">
-                    <span className="font-serif italic text-[var(--chart-5)] text-[11px] w-4 text-right shrink-0">
-                      {i + 1}
-                    </span>
-                    <div className="size-2.5 shrink-0" style={{ backgroundColor: CATEGORY_COLORS[t.category] || '#93b599' }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-medium text-foreground truncate">{t.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{t.date}</p>
+              {transactions.length === 0 ? (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-xs text-muted-foreground">No transactions yet</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {transactions.map((t, i) => (
+                    <div key={t.id} className="flex items-center gap-3 px-4 py-2.5">
+                      <span className="font-serif italic text-[var(--chart-5)] text-[11px] w-4 text-right shrink-0">
+                        {i + 1}
+                      </span>
+                      <div className="size-2.5 shrink-0" style={{ backgroundColor: CATEGORY_COLORS[t.category] || '#93b599' }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-medium text-foreground truncate">{t.title}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <span className={`text-[11px] font-serif font-medium whitespace-nowrap ${t.amount < 0 ? 'text-[var(--chart-3)]' : 'text-[var(--chart-2)]'}`}>
+                        {t.amount < 0 ? '-' : '+'}{formatCurrency(t.amount)}
+                      </span>
                     </div>
-                    <span className={`text-[11px] font-serif font-medium whitespace-nowrap ${t.amount < 0 ? 'text-[var(--chart-3)]' : 'text-[var(--chart-2)]'}`}>
-                      {t.amount < 0 ? '-' : '+'}{formatCurrency(t.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
               <div className="border-t border-[var(--chart-3)] px-4 py-2">
                 <Button variant="ghost" size="sm" className="w-full text-[10px] tracking-[0.06em] uppercase text-[var(--chart-2)] hover:text-[var(--chart-3)] rounded-none">
                   View All Transactions
@@ -266,52 +413,58 @@ export const Financial = () => {
             {/* Expenses Breakdown — Recharts Pie */}
             <div className="border border-[var(--chart-3)] border-l-0 md:border-l-0">
               <SectionHeader label="Breakdown" subtitle="By category" />
-              <div className="p-4">
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={65}
-                      paddingAngle={2}
-                      strokeWidth={0}
-                    >
-                      {pieData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
-                      contentStyle={{
-                        border: '1px solid #344e41',
-                        borderRadius: 0,
-                        fontSize: 11,
-                        fontFamily: 'Plus Jakarta Sans',
-                      }}
-                    />
-                    <Legend
-                      verticalAlign="middle"
-                      align="right"
-                      layout="vertical"
-                      iconType="circle"
-                      iconSize={8}
-                      formatter={(value: string, entry) => {
-                        const item = pieData.find((d) => d.name === value);
-                        const pct = item ? Math.round((item.value / totalExpenses) * 100) : '';
-                        return (
-                          <span className="text-[11px]" style={{ color: item?.color || '#94a3b8' }}>
-                            {value} <span className="text-muted-foreground">{pct}%</span>
-                          </span>
-                        );
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {pieData.length === 0 ? (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-xs text-muted-foreground">No expense data</p>
+                </div>
+              ) : (
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={65}
+                        paddingAngle={2}
+                        strokeWidth={0}
+                      >
+                        {pieData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => formatCurrency(value)}
+                        contentStyle={{
+                          border: '1px solid #344e41',
+                          borderRadius: 0,
+                          fontSize: 11,
+                          fontFamily: 'Plus Jakarta Sans',
+                        }}
+                      />
+                      <Legend
+                        verticalAlign="middle"
+                        align="right"
+                        layout="vertical"
+                        iconType="circle"
+                        iconSize={8}
+                        formatter={(value: string) => {
+                          const item = pieData.find((d) => d.name === value);
+                          const pct = item ? Math.round((item.value / totalExpenses) * 100) : '';
+                          return (
+                            <span className="text-[11px]" style={{ color: item?.color || '#94a3b8' }}>
+                              {value} <span className="text-muted-foreground">{pct}%</span>
+                            </span>
+                          );
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
               <div className="border-t border-[var(--chart-3)] px-4 py-2">
                 <span className="text-[10px] text-muted-foreground">
                   Total: <span className="font-serif text-[var(--chart-3)]">{formatCurrency(totalExpenses)}</span>
@@ -320,83 +473,106 @@ export const Financial = () => {
             </div>
           </div>
 
-          {/* Monthly Expected vs Actual — Recharts AreaChart */}
-          <div className="mb-6">
-            <SectionHeader label="Monthly" subtitle="Expected vs Actual" />
-            <div className="border border-[var(--chart-3)] border-t-0 p-4">
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={monthlyData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="var(--border)"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'Plus Jakarta Sans' }}
-                    axisLine={{ stroke: '#cbd5e1' }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tickFormatter={formatCompact}
-                    tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'Plus Jakarta Sans' }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={40}
-                  />
-                  <Tooltip
-                    formatter={formatTooltipCurrency}
-                    contentStyle={{
-                      border: '1px solid #344e41',
-                      borderRadius: 0,
-                      fontSize: 11,
-                      fontFamily: 'Plus Jakarta Sans',
-                    }}
-                  />
-                  <ReferenceLine
-                    y={mockExpected[0]}
-                    stroke={CHART_COLORS.expected}
-                    strokeDasharray="4 4"
-                    strokeWidth={1}
-                    label={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="expected"
-                    stroke={CHART_COLORS.expected}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    fill={CHART_COLORS.expected}
-                    fillOpacity={0.04}
-                    dot={false}
-                    name="expected"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="actual"
-                    stroke={CHART_COLORS.actual}
-                    strokeWidth={2}
-                    fill={CHART_COLORS.actual}
-                    fillOpacity={0.08}
-                    dot={{ r: 3, fill: CHART_COLORS.actual, strokeWidth: 0 }}
-                    activeDot={{ r: 4, fill: CHART_COLORS.actual, strokeWidth: 2, stroke: '#ffffff' }}
-                    name="actual"
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    iconType="line"
-                    wrapperStyle={{ fontSize: 10, fontFamily: 'Plus Jakarta Sans', paddingBottom: 8 }}
-                    formatter={(value: string) => (
-                      <span className="text-[10px] tracking-[0.04em] uppercase" style={{ color: '#94a3b8' }}>
-                        {value}
-                      </span>
-                    )}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+          {/* Expected vs Actual — Recharts AreaChart */}
+          {monthlyData.length > 0 && (
+            <div className="mb-6">
+              <div className="border-[var(--chart-3)] border">
+                <div className="bg-[var(--chart-3)] text-[var(--background)] px-4 py-2 flex items-baseline justify-between">
+                  <span className="text-[10px] tracking-[0.12em] uppercase font-sans font-medium">
+                    Projection
+                  </span>
+                  <div className="flex items-center gap-0">
+                    {(['daily', 'weekly', 'monthly'] as const).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPeriod(p)}
+                        className={`px-2 py-0.5 text-[9px] tracking-[0.08em] uppercase font-sans font-medium transition-colors ${
+                          period === p
+                            ? 'bg-[var(--background)] text-[var(--chart-3)]'
+                            : 'text-[var(--background)]/60 hover:text-[var(--background)]'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="border border-[var(--chart-3)] border-t-0 p-4">
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={monthlyData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--border)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'Plus Jakarta Sans' }}
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tickFormatter={formatCompact}
+                      tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'Plus Jakarta Sans' }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={40}
+                    />
+                    <Tooltip
+                      formatter={formatTooltipCurrency}
+                      contentStyle={{
+                        border: '1px solid #344e41',
+                        borderRadius: 0,
+                        fontSize: 11,
+                        fontFamily: 'Plus Jakarta Sans',
+                      }}
+                    />
+                    <ReferenceLine
+                      y={monthlyData[0]?.expected}
+                      stroke={CHART_COLORS.expected}
+                      strokeDasharray="4 4"
+                      strokeWidth={1}
+                      label={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="expected"
+                      stroke={CHART_COLORS.expected}
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      fill={CHART_COLORS.expected}
+                      fillOpacity={0.04}
+                      dot={false}
+                      name="expected"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="actual"
+                      stroke={CHART_COLORS.actual}
+                      strokeWidth={2}
+                      fill={CHART_COLORS.actual}
+                      fillOpacity={0.08}
+                      dot={{ r: 3, fill: CHART_COLORS.actual, strokeWidth: 0 }}
+                      activeDot={{ r: 4, fill: CHART_COLORS.actual, strokeWidth: 2, stroke: '#ffffff' }}
+                      name="actual"
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      iconType="line"
+                      wrapperStyle={{ fontSize: 10, fontFamily: 'Plus Jakarta Sans', paddingBottom: 8 }}
+                      formatter={(value: string) => (
+                        <span className="text-[10px] tracking-[0.04em] uppercase" style={{ color: '#94a3b8' }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Add Transaction Button */}
           <div className="flex justify-end pb-8">
@@ -446,16 +622,32 @@ export const Financial = () => {
 
             <div className="px-5 pb-5 flex flex-col gap-3">
               <div className="flex flex-col gap-1">
+                <label className="text-[10px] tracking-[0.08em] uppercase text-[var(--chart-2)] font-medium">Title</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Makan siang"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  className="h-9 text-sm rounded-none border-[var(--chart-3)] bg-background"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
                 <label className="text-[10px] tracking-[0.08em] uppercase text-[var(--chart-2)] font-medium">Amount (Rp)</label>
                 <Input
                   type="number"
                   placeholder="e.g. 45000"
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
                   className="h-9 text-sm rounded-none border-[var(--chart-3)] bg-background"
                 />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] tracking-[0.08em] uppercase text-[var(--chart-2)] font-medium">Category</label>
-                <select className="h-9 border border-[var(--chart-3)] bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--chart-2)]">
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="h-9 border border-[var(--chart-3)] bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--chart-2)]"
+                >
                   <option value="" disabled>Select Category</option>
                   <option value="Konsumsi">Konsumsi</option>
                   <option value="Transportasi">Transportasi</option>
@@ -468,11 +660,17 @@ export const Financial = () => {
                 <label className="text-[10px] tracking-[0.08em] uppercase text-[var(--chart-2)] font-medium">Date</label>
                 <Input
                   type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
                   className="h-9 text-sm rounded-none border-[var(--chart-3)] bg-background"
                 />
               </div>
-              <Button className="mt-1 h-10 bg-[var(--chart-3)] text-[var(--background)] hover:bg-[var(--chart-2)] text-[11px] rounded-none font-semibold tracking-[0.04em] uppercase">
-                Add Record
+              <Button
+                onClick={handleAddTransaction}
+                disabled={submitting || !formAmount || !formCategory || !formDate}
+                className="mt-1 h-10 bg-[var(--chart-3)] text-[var(--background)] hover:bg-[var(--chart-2)] text-[11px] rounded-none font-semibold tracking-[0.04em] uppercase disabled:opacity-50"
+              >
+                {submitting ? <Loader2 className="size-4 animate-spin" /> : 'Add Record'}
               </Button>
             </div>
           </div>

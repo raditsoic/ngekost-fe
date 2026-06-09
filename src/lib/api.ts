@@ -63,9 +63,11 @@ async function authRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = getAccessToken();
+  const isMultipart = options.body instanceof FormData;
+  const passedHeaders = options.headers as Record<string, string> | undefined;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(isMultipart ? {} : { 'Content-Type': 'application/json' }),
+    ...passedHeaders,
   };
 
   if (token) {
@@ -118,6 +120,7 @@ export interface User {
   id: string;
   email: string;
   display_name: string;
+  onboarding_completed: boolean;
 }
 
 export interface TokenResponse {
@@ -136,6 +139,57 @@ export interface Conversation {
   updated_at: string;
 }
 
+export interface BudgetPlanCard {
+  plan_id: string;
+  label: string;
+  total_monthly_cost_idr?: number;
+  net_monthly_savings_idr?: number;
+  rent_to_income_ratio?: number;
+  status: 'draft' | 'active' | 'archived';
+}
+
+export type BudgetCategorySource = 'ai_generated' | 'poi_average' | 'user_override' | 'invoice_derived';
+
+export type BudgetCategoryKey = 'rent' | 'food' | 'transportation' | 'utilities' | 'laundry' | 'internet';
+
+export interface BudgetCategoryItem {
+  category: BudgetCategoryKey;
+  monthly_amount_idr: number;
+  daily_amount_idr: number;
+  source: BudgetCategorySource;
+}
+
+export interface BudgetPlanDetail {
+  id: string;
+  property_id: string;
+  property_title: string;
+  property_address: string;
+  label: string;
+  total_monthly_cost_idr: number;
+  total_daily_allowance_idr: number;
+  rent_to_income_ratio: number;
+  net_monthly_savings_idr: number;
+  status: 'draft' | 'active' | 'archived';
+  categories: BudgetCategoryItem[];
+  created_at: string;
+}
+
+export interface BudgetPlanListItem {
+  id: string;
+  label: string;
+  property_title: string;
+  property_address: string;
+  total_monthly_cost_idr: number;
+  rent_to_income_ratio: number;
+  net_monthly_savings_idr: number;
+  status: 'draft' | 'active' | 'archived';
+  created_at: string;
+}
+
+export interface BudgetPlanListResponse {
+  data: BudgetPlanListItem[];
+}
+
 export interface ChatMessage {
   id: string;
   conversation_id: string;
@@ -145,6 +199,22 @@ export interface ChatMessage {
   external_message_id: string;
   token_input: number;
   token_output: number;
+  tool_name?: string | null;
+  tool_params?: unknown;
+  tool_result?: unknown;
+  message_type?: 'location_pin' | 'budget_plan' | null;
+  metadata?: {
+    pins?: Array<{
+      id: string;
+      title: string;
+      address: string;
+      latitude: number;
+      longitude: number;
+    }>;
+    card?: BudgetPlanCard;
+    images?: string[];
+  } | null;
+  images?: ImageURL[];
 }
 
 export interface ConversationListResponse {
@@ -192,6 +262,89 @@ export interface PropertyListResponse {
   total: number;
   page: number;
   per_page: number;
+}
+
+export type VehicleType = 'none' | 'motorcycle' | 'car' | 'both' | 'bicycle' | 'walking' | 'public_transport';
+
+export interface UpsertFinancialsRequest {
+  monthly_income_idr: number;
+  monthly_expenses_idr?: number;
+  vehicle_type: VehicleType;
+}
+
+export interface FinancialsResponse {
+  monthly_income_idr: number;
+  vehicle_type: VehicleType;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActiveLeaseProperty {
+  id: string;
+  name: string;
+  address: string;
+  imageUrl: string;
+}
+
+export interface ActiveLeaseRentDetails {
+  amount: number;
+  period: string;
+  nextDueDate: string;
+}
+
+export interface ActiveLease {
+  id: string;
+  property: ActiveLeaseProperty;
+  rentDetails: ActiveLeaseRentDetails;
+}
+
+export interface MonthlyAggregation {
+  month: string;
+  expected: number;
+  actual: number;
+}
+
+export interface FinancialOverviewResponse {
+  income: number;
+  activeLease: ActiveLease | null;
+  monthlyAggregation: MonthlyAggregation[];
+}
+
+export interface Transaction {
+  id: string;
+  title: string;
+  amount: number;
+  category: 'Konsumsi' | 'Utilitas' | 'Lainnya' | 'Transportasi' | 'Sewa';
+  date: string;
+  receiptUrl: string | null;
+}
+
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface TransactionsResponse {
+  transactions: Transaction[];
+  pagination: Pagination;
+}
+
+export interface UploadResponse {
+  file_id: string;
+  file_type: string;
+  size: number;
+}
+
+export interface CreateTransactionRequest {
+  amount: number;
+  category: string;
+  date: string;
+  title?: string;
+}
+
+export interface UpdateIncomeRequest {
+  income: number;
 }
 
 export const api = {
@@ -245,6 +398,15 @@ export const api = {
     return authRequest<MessageListResponse>(`/v1/chat/${conversationId}/messages${qs ? `?${qs}` : ''}`);
   },
 
+  uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return authRequest<UploadResponse>('/v1/upload/image', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   listProperties(params?: { page?: number; per_page?: number }) {
     const query = new URLSearchParams();
     if (params?.page) query.set('page', String(params.page));
@@ -255,5 +417,84 @@ export const api = {
 
   getProperty(id: string) {
     return request<Property>(`/v1/properties/${id}`);
+  },
+
+  upsertFinancials(data: UpsertFinancialsRequest) {
+    return authRequest<FinancialsResponse>('/v1/users/me/financials', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  getFinancials() {
+    return authRequest<FinancialsResponse>('/v1/users/me/financials');
+  },
+
+  getFinancialOverview(params?: { period?: 'daily' | 'weekly' | 'monthly' }) {
+    const query = new URLSearchParams();
+    if (params?.period) query.set('period', params.period);
+    const qs = query.toString();
+    return authRequest<{ status: string; data: FinancialOverviewResponse }>(`/v1/users/me/financials/overview${qs ? `?${qs}` : ''}`);
+  },
+
+  listTransactions(params?: { limit?: number; month?: string }) {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.month) query.set('month', params.month);
+    const qs = query.toString();
+    return authRequest<{ status: string; data: TransactionsResponse }>(`/v1/users/me/financials/transactions${qs ? `?${qs}` : ''}`);
+  },
+
+  createTransaction(data: CreateTransactionRequest) {
+    return authRequest<{ status: string; message: string; data: Transaction }>('/v1/users/me/financials/transactions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateIncome(data: UpdateIncomeRequest) {
+    return authRequest<{ status: string; message: string; data: { income: number } }>('/v1/users/me/financials/income', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  listBudgetPlans(params?: { page?: number; per_page?: number }) {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.per_page) query.set('per_page', String(params.per_page));
+    const qs = query.toString();
+    return authRequest<BudgetPlanListResponse>(`/v1/users/me/budget-plans/${qs ? `?${qs}` : ''}`);
+  },
+
+  getBudgetPlan(id: string) {
+    return authRequest<BudgetPlanDetail | { status: string; data: BudgetPlanDetail }>(`/v1/users/me/budget-plans/${id}`)
+      .then(res => {
+        if ('data' in res && res.data && typeof res.data === 'object') return res.data;
+        return res as BudgetPlanDetail;
+      });
+  },
+
+  deleteBudgetPlan(id: string) {
+    return authRequest<void>(`/v1/users/me/budget-plans/${id}`, { method: 'DELETE' });
+  },
+
+  updateBudgetPlanCategories(id: string, categories: Array<{ category: BudgetCategoryKey; monthly_amount_idr: number }>) {
+    return authRequest<BudgetPlanDetail>(`/v1/users/me/budget-plans/${id}/categories`, {
+      method: 'PATCH',
+      body: JSON.stringify({ categories }),
+    });
+  },
+
+  activateBudgetPlan(id: string) {
+    return authRequest<BudgetPlanDetail>(`/v1/users/me/budget-plans/${id}/activate`, {
+      method: 'POST',
+    });
+  },
+
+  archiveBudgetPlan(id: string) {
+    return authRequest<BudgetPlanDetail>(`/v1/users/me/budget-plans/${id}/archive`, {
+      method: 'POST',
+    });
   },
 };
