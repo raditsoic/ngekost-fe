@@ -20,7 +20,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, remember?: boolean) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -47,11 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, remember = true) => {
     setError(null);
     try {
       const res = await api.login(email, password);
-      setTokens(res.access_token, res.refresh_token);
+      setTokens(res.access_token, res.refresh_token, remember);
       const me = await api.getMe();
       setUser(me);
     } catch (e) {

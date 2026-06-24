@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, getValidAccessToken, type ChatMessage, type BudgetPlanCard, type BudgetPlanDetail, type BudgetCategoryKey } from '../lib/api';
+import { api, getValidAccessToken, type ChatMessage, type BudgetPlanCard, type BudgetPlanDetail, type BudgetCategoryKey, type Route } from '../lib/api';
 import { streamChat } from '../lib/ws';
 import { useAuth } from '../auth/context';
 import type { StreamEvent, StreamHandle } from '../lib/ws';
@@ -93,6 +93,7 @@ export type Message = {
   toolCallItems?: ToolCallItem[];
   pins?: LocationPin[];
   budgetPlans?: BudgetPlanCard[];
+  routes?: Route[];
   isStreaming?: boolean;
   imageUrls?: string[];
 };
@@ -184,6 +185,62 @@ function LocationPinCarousel({ pins }: { pins: LocationPin[] }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ─── Route (commute) embeds — Maps Embed API directions mode ───
+   The Embed API has no two-wheeler mode, so TWO_WHEELER falls back to driving.
+   duration_no_traffic_min ("lancar") is the stable free-flow figure; duration_min
+   ("ramai") is a traffic snapshot at request time and goes stale in history. */
+const routeEmbedMode: Record<Route['travel_mode'], string> = {
+  DRIVE: 'driving',
+  WALK: 'walking',
+  TRANSIT: 'transit',
+  TWO_WHEELER: 'driving',
+};
+
+function RouteCarousel({ routes }: { routes: Route[] }) {
+  if (routes.length === 0) return null;
+
+  return (
+    <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 -mx-1 px-1 scrollbar-thin">
+      {routes.map((route, i) => {
+        const { origin, destination } = route;
+        const mode = routeEmbedMode[route.travel_mode] ?? 'driving';
+        const src = `https://www.google.com/maps/embed/v1/directions?key=${MAPS_KEY}&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&units=metric&language=id`;
+        const originLabel = origin.label || 'Properti';
+        const destLabel = destination.label || 'Tujuan';
+        return (
+          <div key={i} className="shrink-0 w-[240px] snap-start border border-foreground/15">
+            <iframe
+              title={`${originLabel} → ${destLabel}`}
+              width="240"
+              height="140"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={src}
+            />
+            <div className="px-2.5 py-2 border-t border-foreground/10">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-serif leading-snug text-foreground/80 line-clamp-1 flex-1 text-right">{originLabel}</span>
+                <ArrowLeftRight className="size-3 shrink-0 text-foreground/30" />
+                <span className="text-[11px] font-serif leading-snug text-foreground/80 line-clamp-1 flex-1">{destLabel}</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 text-[9px] text-muted-foreground">
+                {route.distance_km != null && <span>{route.distance_km.toFixed(1)} km</span>}
+                {route.duration_no_traffic_min != null && (
+                  <span>· lancar {Math.round(route.duration_no_traffic_min)} mnt</span>
+                )}
+                {route.duration_min != null && (
+                  <span>· ramai {Math.round(route.duration_min)} mnt</span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -760,6 +817,7 @@ export const Chat = () => {
         const toolCallMap = new Map<string, ToolCallItem[]>();
         const pinsMap = new Map<string, LocationPin[]>();
         const budgetPlanMap = new Map<string, BudgetPlanCard>();
+        const routesMap = new Map<string, Route[]>();
         const thinkingMap = new Map<string, string>();
 
         for (const m of sorted) {
@@ -807,6 +865,13 @@ export const Chat = () => {
               budgetPlanMap.set(parent.id, [...prev, m.metadata.card]);
             }
           }
+
+          if (m.message_type === 'route' && m.metadata?.routes) {
+            if (parent) {
+              const prev = routesMap.get(parent.id) ?? [];
+              routesMap.set(parent.id, [...prev, ...m.metadata.routes]);
+            }
+          }
         }
 
         const mapped: Message[] = sorted
@@ -821,6 +886,7 @@ export const Chat = () => {
             toolCallItems: toolCallMap.get(m.id),
             pins: pinsMap.get(m.id),
             budgetPlans: budgetPlanMap.get(m.id),
+            routes: routesMap.get(m.id),
             imageUrls: m.images?.map(img => img.url),
           }));
         setMessages(mapped);
@@ -1001,6 +1067,12 @@ export const Chat = () => {
                 if (card) {
                   updated.budgetPlans = [...(msg.budgetPlans ?? []), card];
                 }
+                break;
+              }
+
+              case 'route': {
+                const newRoutes = (event as Record<string, unknown>).routes as Route[] ?? [];
+                updated.routes = [...(msg.routes ?? []), ...newRoutes];
                 break;
               }
 
@@ -1193,6 +1265,10 @@ export const Chat = () => {
 
                   {msg.pins && msg.pins.length > 0 && (
                     <LocationPinCarousel pins={msg.pins} />
+                  )}
+
+                  {msg.routes && msg.routes.length > 0 && (
+                    <RouteCarousel routes={msg.routes} />
                   )}
 
                   {msg.role === 'user' ? (

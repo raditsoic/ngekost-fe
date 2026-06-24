@@ -3,12 +3,18 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const TOKEN_KEY = 'access_token';
 const REFRESH_KEY = 'refresh_token';
 
+// Tokens may live in either localStorage (persistent, "remember me") or
+// sessionStorage (cleared when the browser tab closes). Check both on read.
 export function getAccessToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
 }
 
 export function getRefreshToken() {
-  return localStorage.getItem(REFRESH_KEY);
+  return localStorage.getItem(REFRESH_KEY) ?? sessionStorage.getItem(REFRESH_KEY);
+}
+
+function isPersistent() {
+  return localStorage.getItem(REFRESH_KEY) !== null;
 }
 
 export async function getValidAccessToken(): Promise<string | null> {
@@ -28,14 +34,17 @@ export async function getValidAccessToken(): Promise<string | null> {
   return token;
 }
 
-export function setTokens(access: string, refresh: string) {
-  localStorage.setItem(TOKEN_KEY, access);
-  localStorage.setItem(REFRESH_KEY, refresh);
+export function setTokens(access: string, refresh: string, persistent = true) {
+  const store = persistent ? localStorage : sessionStorage;
+  store.setItem(TOKEN_KEY, access);
+  store.setItem(REFRESH_KEY, refresh);
 }
 
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_KEY);
 }
 
 async function request<T>(
@@ -101,7 +110,7 @@ async function tryRefresh(): Promise<boolean> {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refresh }),
     });
-    setTokens(data.access_token, data.refresh_token);
+    setTokens(data.access_token, data.refresh_token, isPersistent());
     return true;
   } catch {
     clearTokens();
@@ -190,6 +199,15 @@ export interface BudgetPlanListResponse {
   data: BudgetPlanListItem[];
 }
 
+export interface Route {
+  travel_mode: 'DRIVE' | 'TWO_WHEELER' | 'TRANSIT' | 'WALK';
+  distance_km: number;
+  duration_min?: number | null;
+  duration_no_traffic_min?: number | null;
+  origin: { label?: string | null; latitude: number; longitude: number };
+  destination: { label?: string | null; latitude: number; longitude: number };
+}
+
 export interface ChatMessage {
   id: string;
   conversation_id: string;
@@ -202,7 +220,7 @@ export interface ChatMessage {
   tool_name?: string | null;
   tool_params?: unknown;
   tool_result?: unknown;
-  message_type?: 'location_pin' | 'budget_plan' | null;
+  message_type?: 'location_pin' | 'budget_plan' | 'route' | null;
   metadata?: {
     pins?: Array<{
       id: string;
@@ -212,6 +230,7 @@ export interface ChatMessage {
       longitude: number;
     }>;
     card?: BudgetPlanCard;
+    routes?: Route[];
     images?: string[];
   } | null;
   images?: ImageURL[];

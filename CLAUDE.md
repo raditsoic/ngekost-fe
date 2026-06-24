@@ -32,3 +32,8 @@ Key features:
 - Use `@keyframes` for ticker scroll and pulse animations (defined in component `<style>` tags)
 - Keep fonts self-hosted via `@fontsource` packages (no Google Fonts CDN)
 - Respect theme variables for colors and spacing
+
+## Development and Deployment:
+
+- Use bun run dev for development
+- Use Docker Compose for deployment

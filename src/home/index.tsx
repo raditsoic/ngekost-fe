@@ -15,6 +15,7 @@ export const Home = () => {
   const [displayName, setDisplayName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -33,7 +34,7 @@ export const Home = () => {
     setSubmitting(true);
     try {
       if (isLogin) {
-        await login(email, password);
+        await login(email, password, remember);
         navigate('/chat');
       } else {
         await register(email, password, displayName);
@@ -220,7 +221,7 @@ export const Home = () => {
                   variant="ghost"
                   size="icon-xs"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
+                  className="absolute right-1.5 inset-y-0 my-auto text-muted-foreground/50 hover:text-muted-foreground"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </Button>
@@ -247,7 +248,7 @@ export const Home = () => {
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
+                    className="absolute right-1.5 inset-y-0 my-auto text-muted-foreground/50 hover:text-muted-foreground"
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </Button>
@@ -256,18 +257,16 @@ export const Home = () => {
             )}
 
             {isLogin && (
-              <div className="flex items-center justify-between pt-1">
+              <div className="pt-1">
                 <label className="flex cursor-pointer items-center gap-2 text-[12px] text-muted-foreground">
                   <input
                     type="checkbox"
-                    defaultChecked
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
                     className="size-3 rounded-none border-foreground accent-[#6a9671]"
                   />
                   Remember me
                 </label>
-                <a href="#" className="text-[12px] text-[#6a9671] hover:underline underline-offset-2">
-                  Forgot password?
-                </a>
               </div>
             )}
 
